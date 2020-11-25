@@ -38,7 +38,7 @@ jobs:
           command: |
             . venv/bin/activate
             mkdir test-reports
-            pytest --junitxml=test-reports/results.xml --cov-report xml:./test-reports/coverage.xml --cov=./src/ unittests/
+            pytest --junitxml=test-reports/results.xml --cov-report xml:./test-reports/coverage.xml --cov=./src/ pytest/
             cat test-reports/coverage.xml
       
       - store_test_results:
