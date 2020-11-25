@@ -1,5 +1,8 @@
 # OutlierHub
 
+[![CircleCI](https://circleci.com/gh/fraunhofer-iais/outlierhub.svg?style=svg)](https://circleci.com/gh/fraunhofer-iais/outlierhub)
+
+
 a curated hub for outlier and anomaly datasets built on top of [datastack](https://github.com/le1nux/datastack).
 
 Currentyly supported datasets:
