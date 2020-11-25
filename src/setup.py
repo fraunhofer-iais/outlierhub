@@ -5,6 +5,6 @@ setup(
     name='outlier_hub',
     version='0.0.1',
     packages=find_packages(),
-    install_requires=["nltk", "datastack", "pandas", "h5py", "torch", "tqdm", "flair"],
+    install_requires=["nltk", "datastack", "pandas", "h5py", "torch", "tqdm", "flair", "torchtext"],
     python_requires=">=3.7"
 )
