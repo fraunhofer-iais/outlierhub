@@ -29,3 +29,4 @@ class TestFactory:
         # assert len(iterator) > 0
         # assert iterator[0][0].shape[0] == 41
         # assert isinstance(iterator[0][1], str) and isinstance(iterator[0][2], str)
+        pass
