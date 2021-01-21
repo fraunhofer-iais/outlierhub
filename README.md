@@ -13,6 +13,12 @@ Currentyly supported datasets:
 * REUTERS
 * TREC
 
+Furthermore, OutlierHub supports the following toy datasets:
+
+* Half Moons
+* Nested Circles
+* Noisy x -> x^3 regression
+
 # Install 
 
 Clone or download the repository and `cd` into OutlierHub's root folder and run
