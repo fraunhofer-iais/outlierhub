@@ -25,7 +25,7 @@ class TestFactory:
         # raw_folder_path = 
         # file_paths = sorted(glob.glob(os.path.join(raw_folder_path, "*")))
         # factory = AtisFactory(storage_connector, *file_paths)
-        # iterator, meta = factory.get_dataset_iterator(split_name)
+        # iterator, meta = factory.get_dataset_iterator({"split": split_name})
         # assert len(iterator) == 4274 if split_name == "train" else True
         # assert len(iterator) == 572 if split_name == "val" else True
         # assert len(iterator) == 586 if split_name == "test" else True

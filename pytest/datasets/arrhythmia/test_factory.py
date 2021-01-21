@@ -20,7 +20,7 @@ class TestFactory:
     @pytest.mark.parametrize("split_name", ["full"])
     def test_get_dataset_iterator(self, storage_connector, split_name):
         factory = ArrhythmiaFactory(storage_connector)
-        iterator, meta = factory.get_dataset_iterator(split_name)
+        iterator, meta = factory.get_dataset_iterator({"split": split_name})
         assert len(iterator) == 452 if split_name == "full" else True
         assert iterator[0][0].shape[0] == 279
         assert isinstance(iterator[0][1], int) and isinstance(iterator[0][2], int)

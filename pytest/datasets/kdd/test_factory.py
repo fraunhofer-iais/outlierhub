@@ -25,7 +25,7 @@ class TestFactory:
         # raw_folder_path = ""
         # file_paths = sorted(glob.glob(os.path.join(raw_folder_path, "*")))
         # factory = KDDFactory(storage_connector, *file_paths)
-        # iterator, meta = factory.get_dataset_iterator(split_name)
+        # iterator, meta = factory.get_dataset_iterator({"split": split_name})
         # assert len(iterator) > 0
         # assert iterator[0][0].shape[0] == 41
         # assert isinstance(iterator[0][1], str) and isinstance(iterator[0][2], str)
