@@ -28,4 +28,4 @@ class CirclesIterator(DatasetIterator):
         :param index: index within dataset
         :return: sample, target, tag
         """
-        return self.X[index], self.y[index], self.y[index]
+        return self.X[index], int(self.y[index]), int(self.y[index])
