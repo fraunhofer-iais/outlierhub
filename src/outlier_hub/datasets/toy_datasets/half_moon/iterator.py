@@ -17,7 +17,7 @@ class HalfMoonIterator(DatasetIterator):
         """
         self.X, self.y = make_moons(n_samples=num_samples, shuffle=True, noise=noise_std, random_state=seed)
         self.X = torch.Tensor(self.X)
-        self.y = torch.Tensor(self.y)
+        self.y = torch.IntTensor(self.y)
 
     def __len__(self):
         return len(self.y)
@@ -27,4 +27,4 @@ class HalfMoonIterator(DatasetIterator):
         :param index: index within dataset
         :return: sample, target, tag
         """
-        return self.X[index], self.y[index], self.y[index]
+        return self.X[index], int(self.y[index]), int(self.y[index])
