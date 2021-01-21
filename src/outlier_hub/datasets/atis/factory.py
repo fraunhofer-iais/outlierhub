@@ -9,6 +9,7 @@ from outlier_hub.datasets.atis.iterator import AtisIterator
 from data_stack.io.resource_definition import ResourceDefinition
 from data_stack.io.retriever import RetrieverFactory
 from data_stack.dataset.meta import MetaFactory
+from typing import Dict, Any
 
 
 class AtisFactory(BaseDatasetFactory):
@@ -57,11 +58,11 @@ class AtisFactory(BaseDatasetFactory):
         meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
         return AtisIterator(dataset_resource, split), meta
 
-    def get_dataset_iterator(self, split: str = None) -> DatasetIteratorIF:
+    def get_dataset_iterator(self, config: Dict[str, Any] = None) -> DatasetIteratorIF:
         if not self.check_exists():
             self._retrieve_raw()
             self._prepare()
-        return self._get_iterator(split)
+        return self._get_iterator(**config)
 
 
 if __name__ == "__main__":
@@ -74,7 +75,7 @@ if __name__ == "__main__":
         # raw_folder_path = ""
         # file_paths = sorted(glob.glob(os.path.join(raw_folder_path, "*")))
         # factory = AtisFactory(storage_connector, *file_paths)
-        # iterator, meta = factory.get_dataset_iterator(split="train")
+        # iterator, meta = factory.get_dataset_iterator(config={"split": "train"})
         # sample, target, tag = iterator[0]
         # print(sample)
         # print(target)

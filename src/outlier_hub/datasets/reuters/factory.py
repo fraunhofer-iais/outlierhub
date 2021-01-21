@@ -8,6 +8,7 @@ from outlier_hub.datasets.reuters.preprocessor import ReutersPreprocessor
 from outlier_hub.datasets.reuters.iterator import ReutersIterator
 import nltk
 from data_stack.dataset.meta import MetaFactory
+from typing import Dict, Any
 
 
 class ReutersFactory(BaseDatasetFactory):
@@ -40,11 +41,11 @@ class ReutersFactory(BaseDatasetFactory):
         meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
         return ReutersIterator(dataset_resource, split), meta
 
-    def get_dataset_iterator(self, split: str = None) -> DatasetIteratorIF:
+    def get_dataset_iterator(self, config: Dict[str, Any] = None) -> DatasetIteratorIF:
         if not self.check_exists():
             self._retrieve_raw()
             self._prepare()
-        return self._get_iterator(split)
+        return self._get_iterator(**config)
 
 
 if __name__ == "__main__":
@@ -55,7 +56,7 @@ if __name__ == "__main__":
         storage_connector = FileStorageConnector(root_path=example_file_storage_path)
 
         reuters_factory = ReutersFactory(storage_connector)
-        reuters_iterator, meta = reuters_factory.get_dataset_iterator(split="test")
+        reuters_iterator, meta = reuters_factory.get_dataset_iterator(config={"split": "test"})
         sample, target, tag = reuters_iterator[0]
         print(sample)
         print(target)

@@ -10,6 +10,7 @@ from outlier_hub.datasets.arrhythmia.preprocessor import ArrhythmiaPreprocessor
 from outlier_hub.datasets.arrhythmia.iterator import ArrhythmiaIterator
 from data_stack.io.resource_definition import ResourceDefinition
 from data_stack.dataset.meta import MetaFactory
+from typing import Dict, Any
 
 
 class ArrhythmiaFactory(BaseDatasetFactory):
@@ -64,7 +65,7 @@ class ArrhythmiaFactory(BaseDatasetFactory):
         meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
         return ArrhythmiaIterator(text_sample_resource, text_target_resource), meta
 
-    def get_dataset_iterator(self, split: str = None) -> DatasetIteratorIF:
+    def get_dataset_iterator(self, config: Dict[str, Any] = None) -> DatasetIteratorIF:
         if not self.check_exists():
             self._retrieve_raw()
             self._prepare()
@@ -79,7 +80,7 @@ if __name__ == "__main__":
         storage_connector = FileStorageConnector(root_path=example_file_storage_path)
 
         arrhythmia_factory = ArrhythmiaFactory(storage_connector)
-        arrhythmia_iterator, meta = arrhythmia_factory.get_dataset_iterator(split="full")
+        arrhythmia_iterator, meta = arrhythmia_factory.get_dataset_iterator(config={"split": "full"})
         sample, target, _ = arrhythmia_iterator[0]
         print(sample)
         print(target)
