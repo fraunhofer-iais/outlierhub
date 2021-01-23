@@ -26,7 +26,7 @@ class GaussianFactory(BaseDatasetFactory):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import torch
-    config = {"split": "train", "seed": 1, "class_label": 1, "num_samples": 10000, "covariance": [[1, 0], [0, 5]], "mean": (1, 1)}
+    config = {"split": "train", "seed": 1, "class_label": 1, "num_samples": 10000, "covariance": [[5, -5], [-5, 5]], "mean": (-5, 5)}
     factory = GaussianFactory()
     iterator, meta = factory.get_dataset_iterator(config)
 
