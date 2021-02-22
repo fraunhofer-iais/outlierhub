@@ -12,6 +12,8 @@ Currentyly supported datasets:
 * KDD
 * REUTERS
 * TREC
+* [MNIST](http://yann.lecun.com/exdb/mnist/)
+* [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist)
 
 Furthermore, OutlierHub supports the following toy datasets:
 
