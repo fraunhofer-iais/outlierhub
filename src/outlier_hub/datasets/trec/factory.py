@@ -33,11 +33,11 @@ class TrecFactory(BaseDatasetFactory):
         preprocessor = TrecPreprocessor(self.storage_connector)
         preprocessor.preprocess(preprocessed_dataset_identifier=dataset_identifier)
 
-    def _get_iterator(self, split: str):
+    def _get_iterator(self, split: str, high_level_targets: bool = True):
         dataset_identifier = self._get_resource_id(element="trec_dataset.hdf5")
         dataset_resource = self.storage_connector.get_resource(identifier=dataset_identifier)
         meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
-        return TrecIterator(dataset_resource, split), meta
+        return TrecIterator(dataset_resource, split, high_level_targets), meta
 
     def get_dataset_iterator(self, config: Dict[str, Any] = None) -> DatasetIteratorIF:
         """Available splits: train, test
@@ -56,6 +56,7 @@ if __name__ == "__main__":
         storage_connector = FileStorageConnector(root_path=example_file_storage_path)
         factory = TrecFactory(storage_connector)
         iterator, meta = factory.get_dataset_iterator(config={"split": "train"})
-        sample, target, tag = iterator[0]
+        sample, target, tag = iterator[1]
         print(sample)
         print(target)
+        print(tag)
