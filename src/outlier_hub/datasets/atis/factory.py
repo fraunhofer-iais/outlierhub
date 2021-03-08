@@ -72,6 +72,7 @@ if __name__ == "__main__":
         example_file_storage_path = os.path.join(root, "dataset_storage")
         storage_connector = FileStorageConnector(root_path=example_file_storage_path)
         # TODO: The ATIS dataset is not easily downloaded which is why we need to specifiy a file directory for the raw files.
+        # import glob
         # raw_folder_path = ""
         # file_paths = sorted(glob.glob(os.path.join(raw_folder_path, "*")))
         # factory = AtisFactory(storage_connector, *file_paths)

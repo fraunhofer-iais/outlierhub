@@ -7,15 +7,15 @@ from data_stack.dataset.factory import BaseDatasetFactory
 from data_stack.dataset.iterator import DatasetIteratorIF
 from outlier_hub.datasets.kdd.preprocessor import KDDPreprocessor
 from outlier_hub.datasets.kdd.iterator import KDDIterator
-import glob
-from typing import List
+from typing import List, Dict, Any
 from data_stack.io.resource_definition import ResourceDefinition
 from data_stack.dataset.meta import MetaFactory
 
 
 class KDDFactory(BaseDatasetFactory):
 
-    def __init__(self, storage_connector: StorageConnector, test_set_path: str, train_set_path: str, attack_type_mapping_path: str, feature_and_target_names_path: str):
+    def __init__(self, storage_connector: StorageConnector, test_set_path: str, train_set_path: str, attack_type_mapping_path: str,
+                 feature_and_target_names_path: str):
         super().__init__(storage_connector)
         self.raw_path = "kdd/raw/"  # this used for the resource definition to store the raw file via the storage connector
         self.preprocessed_path = "kdd/preprocessed/"
@@ -63,12 +63,12 @@ class KDDFactory(BaseDatasetFactory):
         meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
         return KDDIterator(dataset_resource), meta
 
-    def get_dataset_iterator(self, split: str) -> DatasetIteratorIF:
+    def get_dataset_iterator(self, config: Dict[str, Any] = None) -> DatasetIteratorIF:
         """valid split names: train, test"""
         if not self.check_exists():
             self._retrieve_raw()
             self._prepare()
-        return self._get_iterator(split)
+        return self._get_iterator(**config)
 
 
 if __name__ == "__main__":
@@ -78,10 +78,11 @@ if __name__ == "__main__":
         example_file_storage_path = os.path.join(root, "dataset_storage")
         storage_connector = FileStorageConnector(root_path=example_file_storage_path)
         # TODO: The KDD dataset is not easily downloaded which is why we need to specifiy a file directory for the raw files.
+        # import glob
         # raw_folder_path = ""
         # file_paths = sorted(glob.glob(os.path.join(raw_folder_path, "*")))
         # factory = KDDFactory(storage_connector, *file_paths)
-        # iterator, meta = factory.get_dataset_iterator(split="train")
+        # iterator, meta = factory.get_dataset_iterator(config={"split": "train"})
         # sample, target, tag = iterator[0]
         # print(sample)
         # print(target)
