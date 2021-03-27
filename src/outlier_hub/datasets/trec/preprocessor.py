@@ -6,7 +6,7 @@ import tempfile
 import h5py
 import os
 import tqdm
-from torchtext import datasets, data
+from torchtext.legacy import datasets, data
 
 
 class TrecPreprocessor:

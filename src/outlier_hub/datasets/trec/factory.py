@@ -60,3 +60,7 @@ if __name__ == "__main__":
         print(sample)
         print(target)
         print(tag)
+        from collections import Counter
+        targets = [t for _, t, _ in iterator]
+        counts = dict(Counter(targets))
+        print(counts)
