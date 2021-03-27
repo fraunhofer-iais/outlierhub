@@ -8,12 +8,13 @@ a curated hub for outlier and anomaly datasets built on top of [datastack](https
 Currentyly supported datasets:
 
 * ATIS
-* ARRHYTHMIA
+* [ARRHYTHMIA](https://archive.ics.uci.edu/ml/datasets/arrhythmia)
 * KDD
-* REUTERS
-* TREC
+* [REUTERS](https://www.nltk.org/book/ch02.html)
+* [TREC](https://cogcomp.seas.upenn.edu/Data/QA/QC/)
 * [MNIST](http://yann.lecun.com/exdb/mnist/)
 * [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist)
+* [Newsgroups](http://qwone.com/~jason/20Newsgroups/)
 
 Furthermore, OutlierHub supports the following toy datasets:
 
@@ -25,11 +26,17 @@ Furthermore, OutlierHub supports the following toy datasets:
 
 # Install 
 
-Clone or download the repository and `cd` into OutlierHub's root folder and run
+```bash
+pip install outlier-hub
+```
+
+For the latest version, clone or download the repository and `cd` into OutlierHub's root folder and run
 
 ```bash
 pip install src/
 ```
+
+
 
 # Usage
 
