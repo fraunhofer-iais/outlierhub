@@ -23,6 +23,8 @@ Furthermore, OutlierHub supports the following toy datasets:
 * Noisy x -> x^3 regression
 * Uniform Noise
 * Gaussian Cluster
+* Circular Segement
+* XOR Squares
 
 # Install 
 
