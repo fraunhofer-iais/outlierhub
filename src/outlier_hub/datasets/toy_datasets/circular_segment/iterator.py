@@ -24,7 +24,7 @@ class CircularSegmentIterator(DatasetIterator):
         self.X = self.X + noise
 
     def __len__(self):
-        return len(self.y)
+        return len(self.X)
 
     def __getitem__(self, index: int):
         """ Returns the sample and target of the dataset at given index position.
