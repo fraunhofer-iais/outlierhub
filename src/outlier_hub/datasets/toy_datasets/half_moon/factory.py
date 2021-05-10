@@ -14,9 +14,10 @@ class HalfMoonFactory(BaseDatasetFactory):
     def __init__(self):
         super().__init__()
 
-    def _get_iterator(self, split: str, noise_std: float, num_samples: List[int], seed: int = 1, translation: List[int] = None):
+    def _get_iterator(self, split: str, noise_std: float, num_samples: List[int], seed: int = 1, translation: List[float] = None,
+                      scaling: List[int] = None):
         meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
-        return HalfMoonIterator(seed, noise_std, num_samples, translation), meta
+        return HalfMoonIterator(seed, noise_std, num_samples, translation, scaling), meta
 
     def get_dataset_iterator(self, config: Dict[str, Any] = None) -> DatasetIteratorIF:
         return self._get_iterator(**config)
@@ -25,7 +26,7 @@ class HalfMoonFactory(BaseDatasetFactory):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import torch
-    config = {"split": "train", "seed": 1, "noise_std": 0.1, "num_samples": [200, 200], "translation": [5, 5]}
+    config = {"split": "train", "seed": 1, "noise_std": 0.1, "num_samples": [200, 200], "translation": [-2, 0], "scaling": [4, 4]}
     factory = HalfMoonFactory()
     iterator, meta = factory.get_dataset_iterator(config)
 
