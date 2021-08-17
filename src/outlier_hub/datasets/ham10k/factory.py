@@ -27,15 +27,16 @@ class HAMFactory(BaseDatasetFactory):
         return os.path.join(self.data_path, element)
 
     def _prepare(self, split: str):
-        # TODO so habe ich keine train und test splits
+        # TODO like this it does not support train and test splits
         preprocessor = HAMPreprocessor(self.storage_connector)
 
         samples_identifier = self._get_resource_id(element=split + "/images")
         targets_identifier = self._get_resource_id(element=split + "/metadata/HAM10000_metadata.csv")
         dataset_identifier = self._get_resource_id(element="ham10k.hdf5")
 
-        identifier_set = (dataset_identifier, samples_identifier, targets_identifier)
-        preprocessor.preprocess(identifier_set)
+        preprocessor.preprocess(dataset_identifier=dataset_identifier,
+                                samples_identifier=samples_identifier,
+                                targets_identifier=targets_identifier)
 
     def _get_iterator(self, split: str):
         dataset_identifier = self._get_resource_id(element="ham10k.hdf5")
@@ -63,5 +64,5 @@ if __name__ == "__main__":
 
     sample, target, tag = ham_iterator[1]
 
-    print(target)
-    print(sample)
+    print(type(ham_iterator[1]))
+    print(type(sample))

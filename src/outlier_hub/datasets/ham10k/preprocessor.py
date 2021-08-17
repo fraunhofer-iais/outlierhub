@@ -1,5 +1,6 @@
 import csv
 import os
+import glob
 import tempfile
 from typing import Tuple, List
 
@@ -18,37 +19,56 @@ class HAMPreprocessor:
         self.split_names = ["raw"]
 
     # def preprocess(self, img_resource: StreamedResource, metadata_resource: StreamedResource):
-    def preprocess(self, identifier_set: Tuple[str, str, str]) -> StreamedResource:
+    def preprocess(self,
+                   dataset_identifier: str,
+                   samples_identifier: str,
+                   targets_identifier: str) -> StreamedResource:
         with tempfile.TemporaryFile() as temp_file:
             with h5py.File(temp_file, 'w') as h5py_file:
                 for split_name in self.split_names:
                     self._preprocess_split(h5py_file,
                                            split_name,
                                            temp_file,
-                                           identifier_set)
+                                           samples_identifier,
+                                           targets_identifier)
                 h5py_file.flush()
                 temp_file.flush()
-            streamed_resource = ResourceFactory.get_resource(identifier_set[0], temp_file)
-            self.storage_connector.set_resource(identifier_set[0], streamed_resource)
-            streamed_resource = self.storage_connector.get_resource(identifier_set[0])
+            streamed_resource = ResourceFactory.get_resource(dataset_identifier, temp_file)
+            self.storage_connector.set_resource(dataset_identifier, streamed_resource)
+            streamed_resource = self.storage_connector.get_resource(dataset_identifier)
         return streamed_resource
 
     def _preprocess_split(self,
                           h5py_file: h5py.File,
                           split_name: str,
                           temporary_file,
-                          identifier_set: Tuple[str, str, str]):
-        split_samples, split_targets = self._get_raw_dataset_split(split_name, identifier_set)
+                          samples_identifier: str,
+                          target_identifier: str):
+        split_samples, split_targets = self._get_raw_dataset_split(split_name,samples_identifier,target_identifier)
+
 
         sample_location = os.path.join(split_name, "samples")
         target_location = os.path.join(split_name, "targets")
 
-        sample_dset = h5py_file.create_dataset(sample_location, shape=(len(split_samples), 450, 600, 3), dtype=int)
+        # samples are images here, which can be intepreted as numpy ndarrays:
+        # so a colored image has height*width pixels, each pixel contains three values representing RGB-Color
+        height = 450
+        width = 600
+        rgb_channel = 3
+
+        sample_dset = h5py_file.create_dataset(sample_location,
+                                               shape=(len(split_samples), height, width, rgb_channel),
+                                               dtype=int)
 
         # h5py cannot save np.ndarrays with strings by default, costum dtype must be created
         utf8_type = h5py.string_dtype('utf-8')
 
-        target_dset = h5py_file.create_dataset(target_location, shape=(len(split_targets), 8,),dtype=utf8_type)
+        # There are 8 meta information for each sample
+        metadata_info_amount = 8
+
+        target_dset = h5py_file.create_dataset(target_location,
+                                               shape=(len(split_targets), metadata_info_amount,),
+                                               dtype=utf8_type)
 
         for cnt, sample in enumerate(split_samples):
             sample_dset[cnt:cnt + 1, :, :] = mpimg.imread(sample)
@@ -56,17 +76,20 @@ class HAMPreprocessor:
         for cnt, target in enumerate(split_targets):
             target_dset[cnt] = target
 
-    def _get_raw_dataset_split(self,split_name: str,identifier_set: Tuple[str, ...]) -> Tuple[List[str], List[
-        np.ndarray]]:
+    def _get_raw_dataset_split(self,
+                               split_name: str,
+                               samples_identifier: str,
+                               target_identifier: str) -> Tuple[List[str], List[np.ndarray]]:
         """
         get tuple containing two lists, first inherits samples and second target information
 
-        @param split_name: i.e. a string which defines 'train' or 'test' dataset
-        @param identifier_set: contains strings (i.e. identifiers) to necessary data (dataset, images, meta)
+        @param split_name: i.e. a string which defines 'train' or 'pytest' dataset
+        @param samples_identifier: contains string to necessary images
+        @param target_identifier: contains string to necessary metadata
         @return: returns a tuple which contains list od samples and list of targets
         """
-        samples_identifier = identifier_set[1]
-        targets_identifier = identifier_set[2]
+        samples_identifier = samples_identifier
+        targets_identifier = target_identifier
 
         def load_sample_paths(samples_identifier) -> List[str]:
             """
@@ -74,14 +97,13 @@ class HAMPreprocessor:
             @param samples_resource: path to samples, here i.e. images
             @return: sorted list of paths of raw samples
             """
-            # Put files into lists and return them:
-            # CAUTION (Not well understood from Author:I.Henk) ==> "as one list of size 4" ?
-            raw_samples_paths = sorted(
-                [os.path.join(samples_identifier, file)
-                 for file in os.listdir(samples_identifier)
-                 if file.endswith('.jpg')]
-            )
+            # Put filespaths  into lists and return them:
+            raw_samples_paths = []
+            for file in sorted(glob.glob(samples_identifier + '/*.jpg')):
+                raw_samples_paths.append(file)
+
             print(f'Length Check of raw sample paths, should be 10015 and result is: \n {len(raw_samples_paths)}')
+
             return raw_samples_paths
 
         def load_metadata(targets_identifier) -> List[np.ndarray]:
@@ -108,4 +130,4 @@ class HAMPreprocessor:
         targets_resource= load_metadata(targets_identifier=targets_identifier)
 
 
-        return (samples_resource, targets_resource)
+        return samples_resource, targets_resource
