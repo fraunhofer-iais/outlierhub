@@ -115,3 +115,10 @@ file_storage
 notebooks
 dataset_storage
 raw_datasets
+
+/src/outlier_hub/datasets/ham10k/data/raw/images/
+!/src/outlier_hub/datasets/ham10k/data/raw/images/.gitkeep
+
+/src/outlier_hub/datasets/ham10k/data/raw/metadata/
+!/src/outlier_hub/datasets/ham10k/data/raw/metadata/.gitkeep
+/src/outlier_hub/datasets/ham10k/data/ham10k.hdf5
