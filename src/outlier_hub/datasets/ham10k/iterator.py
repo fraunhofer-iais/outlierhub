@@ -22,7 +22,7 @@ class HAMIterator(DatasetIterator):
         @param index: index within dataset
         @return: sample, target, tag
         """
-        if(len(self) > index):
+        if len(self) > index:
             target = self.targets_dataset[index]
             return torch.from_numpy(self.samples_dataset[index]), target, target
         else:
