@@ -28,7 +28,6 @@ class HAMPreprocessor:
                 for split_name in self.split_names:
                     self._preprocess_split(h5py_file,
                                            split_name,
-                                           temp_file,
                                            samples_identifier,
                                            targets_identifier)
                 h5py_file.flush()
@@ -41,11 +40,10 @@ class HAMPreprocessor:
     def _preprocess_split(self,
                           h5py_file: h5py.File,
                           split_name: str,
-                          temporary_file,
                           samples_identifier: str,
                           target_identifier: str):
 
-        split_samples, split_targets = self._get_raw_dataset_split(split_name, samples_identifier, target_identifier)
+        split_samples, split_targets = self._get_raw_dataset_split(samples_identifier, target_identifier)
 
         sample_location = os.path.join(split_name, "samples")
         target_location = os.path.join(split_name, "targets")
@@ -77,13 +75,10 @@ class HAMPreprocessor:
             target_dset[cnt] = target
 
     def _get_raw_dataset_split(self,
-                               split_name: str,
                                samples_identifier: str,
                                target_identifier: str) -> Tuple[List[str], List[np.ndarray]]:
         """
         get tuple containing two lists, first inherits samples and second target information
-
-        @param split_name: i.e. a string which defines 'train' or 'pytest' dataset
         @param samples_identifier: contains string to necessary images
         @param target_identifier: contains string to necessary metadata
         @return: returns a tuple which contains list od samples and list of targets
