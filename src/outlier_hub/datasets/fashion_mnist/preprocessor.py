@@ -3,6 +3,7 @@ from data_stack.io.resources import ResourceFactory, StreamedResource
 import io
 from data_stack.io.storage_connectors import StorageConnector
 from torchvision import transforms
+import numpy as np
 
 
 class FashionMNISTPreprocessor:
@@ -26,9 +27,11 @@ class FashionMNISTPreprocessor:
 
     def _preprocess_sample_resource(self, samples: torch.Tensor, preprocessed_identifier: str) -> StreamedResource:
         samples = samples.float()
-        # we don't calculate this on the fly, since the normalization values are calculated on train and then applied to train and test.
-        samples = transforms.Normalize((72.9403,), (90.0212,))(samples)
-        sample_resource = self._torch_tensor_to_streamed_resource(preprocessed_identifier, samples)
+        # we don't calculate this on the fly, since the normalization values are calculated on train and then applied to train and test
+        img_transformed = [transforms.ToTensor()(samples[i].numpy().astype(np.uint8)) for i in range(len(samples))]
+        img_tensor = torch.cat(img_transformed, dim=0)
+
+        sample_resource = self._torch_tensor_to_streamed_resource(preprocessed_identifier, img_tensor)
         return sample_resource
 
     def _preprocess_target_resource(self, targets: torch.Tensor, preprocessed_identifier: str) -> StreamedResource:
