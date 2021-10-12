@@ -6,8 +6,8 @@ from data_stack.dataset.iterator import DatasetIteratorIF
 from data_stack.dataset.meta import IteratorMeta, MetaFactory
 from data_stack.io.storage_connectors import StorageConnector, FileStorageConnector
 
-from preprocessor import HAMPreprocessor
-from iterator import HAMIterator
+from outlier_hub.datasets.ham10k.preprocessor import HAMPreprocessor
+from outlier_hub.datasets.ham10k.iterator import HAMIterator
 
 
 class HAMFactory(BaseDatasetFactory):
