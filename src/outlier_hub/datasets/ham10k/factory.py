@@ -1,4 +1,5 @@
 import os
+import pathlib
 from typing import Tuple, Dict, Any
 
 from data_stack.dataset.factory import BaseDatasetFactory
@@ -12,15 +13,17 @@ from outlier_hub.datasets.ham10k.iterator import HAMIterator
 
 class HAMFactory(BaseDatasetFactory):
 
-    def __init__(self, storage_connector: StorageConnector):
-        self.raw_path = os.getcwd()
-        self.data_path = os.path.join(self.raw_path, "data")
+    def __init__(self, storage_connector: StorageConnector,):
+        # pathlib allows to manipulate the root folder, it takes it to the root directory of this project
+        self.raw_path = pathlib.Path.cwd().parents[3]
+        # completing the path to the manual added data source
+        self.data_path = os.path.join(self.raw_path, "src/outlier_hub/datasets/ham10k/data")
 
         super().__init__(storage_connector)
 
     def check_exists(self) -> bool:
         # TODO come up with a better check!
-        sample_identifier = self._get_resource_id(element="ham10k.hdf5")
+        sample_identifier = "ham10k.hdf5"
         return self.storage_connector.has_resource(sample_identifier)
 
     def _get_resource_id(self, element: str) -> str:
@@ -39,7 +42,7 @@ class HAMFactory(BaseDatasetFactory):
                                 targets_identifier=targets_identifier)
 
     def _get_iterator(self, split: str):
-        dataset_identifier = self._get_resource_id(element="ham10k.hdf5")
+        dataset_identifier = "ham10k.hdf5"
         dataset_resource = self.storage_connector.get_resource(identifier=dataset_identifier)
         meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
         return HAMIterator(dataset_resource, split), meta
@@ -52,11 +55,13 @@ class HAMFactory(BaseDatasetFactory):
 
 # Code for testing the dataset
 if __name__ == "__main__":
-    data_root = os.getcwd()
+    # get root workind directory path
+    root_path = pathlib.Path.cwd().parents[3]
 
-    data_storage_path = os.path.join(data_root, "data")
+    # complete path to manual added data
+    data_path = os.path.join(root_path, "src/outlier_hub/datasets/ham10k/data")
 
-    storage_connector = FileStorageConnector(root_path=data_storage_path)
+    storage_connector = FileStorageConnector(root_path=data_path)
 
     ham_factory = HAMFactory(storage_connector)
 
