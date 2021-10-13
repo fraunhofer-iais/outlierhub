@@ -3,7 +3,7 @@ import random
 import numpy as np
 import torch
 from data_stack.io.storage_connectors import StorageConnectorFactory
-from factory import HAMFactory
+from src.outlier_hub.datasets.ham10k.factory import HAMFactory
 import pytest
 import shutil
 
@@ -21,7 +21,7 @@ class TestFactory:
         return StorageConnectorFactory.get_file_storage_connector(tmp_folder_path)
 
     @pytest.mark.parametrize("split_name", ["raw"])
-    def test_get_dataset_iterator(self,storage_connector,split_name):
+    def test_get_dataset_iterator(self, storage_connector, split_name):
         factory = HAMFactory(storage_connector)
 
         iterator, _ = factory.get_dataset_iterator(config={"split": "raw"})

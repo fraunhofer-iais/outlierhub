@@ -18,17 +18,16 @@ class HAMPreprocessor:
         # TODO right now only one split is needed
         self.split_names = ["raw"]
 
-    # def preprocess(self, img_resource: StreamedResource, metadata_resource: StreamedResource):
     def preprocess(self,
                    dataset_identifier: str,
                    samples_identifier: str,
                    targets_identifier: str) -> StreamedResource:
+
         with tempfile.TemporaryFile() as temp_file:
             with h5py.File(temp_file, 'w') as h5py_file:
                 for split_name in self.split_names:
                     self._preprocess_split(h5py_file,
                                            split_name,
-                                           temp_file,
                                            samples_identifier,
                                            targets_identifier)
                 h5py_file.flush()
@@ -41,11 +40,10 @@ class HAMPreprocessor:
     def _preprocess_split(self,
                           h5py_file: h5py.File,
                           split_name: str,
-                          temporary_file,
                           samples_identifier: str,
                           target_identifier: str):
-        split_samples, split_targets = self._get_raw_dataset_split(split_name,samples_identifier,target_identifier)
 
+        split_samples, split_targets = self._get_raw_dataset_split(samples_identifier, target_identifier)
 
         sample_location = os.path.join(split_name, "samples")
         target_location = os.path.join(split_name, "targets")
@@ -77,13 +75,10 @@ class HAMPreprocessor:
             target_dset[cnt] = target
 
     def _get_raw_dataset_split(self,
-                               split_name: str,
                                samples_identifier: str,
                                target_identifier: str) -> Tuple[List[str], List[np.ndarray]]:
         """
         get tuple containing two lists, first inherits samples and second target information
-
-        @param split_name: i.e. a string which defines 'train' or 'pytest' dataset
         @param samples_identifier: contains string to necessary images
         @param target_identifier: contains string to necessary metadata
         @return: returns a tuple which contains list od samples and list of targets
@@ -94,7 +89,7 @@ class HAMPreprocessor:
         def load_sample_paths(samples_identifier) -> List[str]:
             """
             function to load folder content into arrays and then it returns that same array
-            @param samples_resource: path to samples, here i.e. images
+            @param samples_identifier: path to samples, here i.e. images
             @return: sorted list of paths of raw samples
             """
             # Put filespaths  into lists and return them:
@@ -109,7 +104,7 @@ class HAMPreprocessor:
         def load_metadata(targets_identifier) -> List[np.ndarray]:
             """
             function to load folder content into arrays and then it returns that same array
-            @param targets_resource: path to metadata.csv file
+            @param targets_identifier: path to metadata.csv file
             @return: sorted list with ISIC ID of metadata in tupels, each sample gets a Tupel with 8 entries
             """
             # Put rows as Tuples into lists and return them:
@@ -123,11 +118,11 @@ class HAMPreprocessor:
 
                 print(f'Length Check of raw meta data, should be 10015 and result is: \n {len(targets_list)}')
                 print(f'Length Check of single tuples, should be 8 and result is: \n {len(targets_list[0])}')
+                print(f'test print of a entry of target_list: {targets_list[0]}')
 
             return targets_list
 
-        samples_resource= load_sample_paths(samples_identifier=samples_identifier)
-        targets_resource= load_metadata(targets_identifier=targets_identifier)
-
+        samples_resource = load_sample_paths(samples_identifier=samples_identifier)
+        targets_resource = load_metadata(targets_identifier=targets_identifier)
 
         return samples_resource, targets_resource
