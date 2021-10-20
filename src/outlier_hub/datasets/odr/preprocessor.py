@@ -79,15 +79,15 @@ class ODRPreprocessor:
             for file in sorted(glob.glob(samples_identifier + '/*.jpg')):
                 raw_samples_paths.append(file)
 
-            print(f'Length Check of raw sample paths, should be 3500 and result is: \n {len(raw_samples_paths)}')
-
+            print(f'Length Check of raw sample paths, should be 7000 and result is: \n {len(raw_samples_paths)}')
+            print(f'raw_samples_paths on point 10: {raw_samples_paths[10]}')
             return raw_samples_paths
 
         def load_metadata(targets_identifier) -> List[np.ndarray]:
             """
             function to load folder content into arrays and then it returns that same array
             @param targets_identifier: path to metadata.csv file
-            @return: sorted list with file name of metadata in tupels, each sample gets a Tupel with 8 entries
+            @return: sorted list with file name of metadata in tupels, it should only contain
             """
             # Put rows as Tuples into lists and return them:
             with open(targets_identifier, newline='') as targets:
@@ -99,7 +99,10 @@ class ODRPreprocessor:
                 targets_list = targets_list[:3500]
 
                 print(f'Length Check of raw meta data, should be 3500 and result is: \n {len(targets_list)}')
-                print(f'Checking on content point 10: \n {len(targets_list[10])}')
+                print(f'Checking on content point 10 and entry 10: \n {targets_list[10][18]}')
+                print(f'Checking on content point 10 and entry 10: \n {targets_list[10][17]}')
+                print(f'Checking on content point 10 and entry 10: \n {targets_list[10][16]}')
+                print(f'Checking on length of an entry at point 10: \n {len(targets_list[10])}')
             return targets_list
 
         samples_resource = load_sample_paths(samples_identifier=samples_identifier)

@@ -62,11 +62,11 @@ if __name__ == "__main__":
 
     storage_connector = FileStorageConnector(root_path=data_path)
 
-    ham_factory = ODRFactory(storage_connector)
+    odr_factory = ODRFactory(storage_connector)
 
-    ham_iterator, _ = ham_factory.get_dataset_iterator(config={"split": "raw"})
+    odr_iterator, _ = odr_factory.get_dataset_iterator(config={"split": "raw"})
 
-    sample, target, tag = ham_iterator[1]
+    sample, target, tag = odr_iterator[1]
 
-    print(type(ham_iterator[1]))
+    print(type(odr_iterator[1]))
     print(type(sample))
