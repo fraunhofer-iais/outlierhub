@@ -12,7 +12,8 @@ from outlier_hub.datasets.odr.iterator import ODRIterator
 
 
 class ODRFactory(BaseDatasetFactory):
-    def __init__(self, storage_connector: StorageConnector,):
+
+    def __init__(self, storage_connector: StorageConnector, ):
         # pathlib allows to manipulate the root folder, it takes it to the root directory of this project
         self.raw_path = pathlib.Path.cwd().parents[3]
         # completing the path to the manual added data source
@@ -32,9 +33,40 @@ class ODRFactory(BaseDatasetFactory):
         preprocessor = ODRPreprocessor(self.storage_connector)
 
         samples_identifier = self._get_resource_id(element=split + "/images")
-        targets_identifier = self._get_resource_id(element=split + "/metadata/HAM10000_metadata.csv")
-        dataset_identifier = self._get_resource_id(element="ham10k.hdf5")
+        targets_identifier = self._get_resource_id(element=split + "/metadata/full_df.csv")
+        dataset_identifier = self._get_resource_id(element="odr.hdf5")
 
         preprocessor.preprocess(dataset_identifier=dataset_identifier,
                                 samples_identifier=samples_identifier,
                                 targets_identifier=targets_identifier)
+
+    def _get_iterator(self, split: str):
+        dataset_identifier = "odr.hdf5"
+        dataset_resource = self.storage_connector.get_resource(identifier=dataset_identifier)
+        meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
+        return ODRIterator(dataset_resource, split), meta
+
+    def get_dataset_iterator(self, config: Dict[str, Any] = None) -> Tuple[DatasetIteratorIF, IteratorMeta]:
+        if not (self.check_exists()):
+            self._prepare(split="raw")
+        return self._get_iterator(**config)
+
+
+# Code for testing the dataset
+if __name__ == "__main__":
+    # get root workind directory path
+    root_path = pathlib.Path.cwd().parents[3]
+
+    # complete path to manual added data
+    data_path = os.path.join(root_path, "src/outlier_hub/datasets/odr/data")
+
+    storage_connector = FileStorageConnector(root_path=data_path)
+
+    ham_factory = ODRFactory(storage_connector)
+
+    ham_iterator, _ = ham_factory.get_dataset_iterator(config={"split": "raw"})
+
+    sample, target, tag = ham_iterator[1]
+
+    print(type(ham_iterator[1]))
+    print(type(sample))
