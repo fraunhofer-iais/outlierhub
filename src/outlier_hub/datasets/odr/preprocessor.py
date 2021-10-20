@@ -3,10 +3,12 @@ import tempfile
 import h5py
 import glob
 import csv
-
-from typing import Tuple, List
-import matplotlib.image as mpimg
 import numpy as np
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+
+from collections import Counter
+from typing import Tuple, List
 from data_stack.io.resources import StreamedResource, ResourceFactory
 from data_stack.io.storage_connectors import StorageConnector
 
@@ -49,6 +51,27 @@ class ODRPreprocessor:
         # samples are images here, which can be intepreted as numpy ndarrays:
         # so a colored image has height*width pixels, each pixel contains three values representing RGB-Color
         # samples resolution are not equal -> reduce all to 512x512
+
+        samples_len = len(split_samples)
+        # get a list with all resolutions as tupel with two integers
+        histo = list(range(samples_len))
+
+        for entry in range(samples_len):
+            img = mpimg.imread(split_samples[entry])
+            histo[entry] = img.shape[0:2]
+
+        # transform histo into a list which contains only caclulated resolution values
+        #ppi_set = [img[0] * img[1] for img in histo]
+        # prepare plot
+        bins = len(Counter(histo).keys())
+        fig, ax = plt.subplots()
+        ax.hist(histo, bins=bins)
+        ax.ticklabel_format(style='plain', useOffset=False, axis='both')
+        plt.show()
+
+        # values, counts = np.unique(ppi_set, return_counts=True)
+        # print(f'values: {values} \n counts: {counts}')
+
 
         # TODO: Images must be reduced
 
