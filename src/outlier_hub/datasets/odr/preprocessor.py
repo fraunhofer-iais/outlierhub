@@ -60,6 +60,8 @@ class ODRPreprocessor:
             img = mpimg.imread(split_samples[entry])
             histo[entry] = img.shape[0:2]
 
+        print(histo)
+
         # transform histo into a list which contains only caclulated resolution values
         #ppi_set = [img[0] * img[1] for img in histo]
         # prepare plot
