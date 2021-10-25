@@ -9,6 +9,7 @@ from data_stack.io.storage_connectors import StorageConnector, FileStorageConnec
 
 from outlier_hub.datasets.odr.preprocessor import ODRPreprocessor
 from outlier_hub.datasets.odr.iterator import ODRIterator
+from data_stack.util.logger import logger
 
 
 class ODRFactory(BaseDatasetFactory):
@@ -54,6 +55,7 @@ class ODRFactory(BaseDatasetFactory):
 
 # Code for testing the dataset
 if __name__ == "__main__":
+    logger.debug(f"starting event")
     # get root workind directory path
     root_path = pathlib.Path.cwd().parents[3]
 

@@ -1,16 +1,43 @@
 import os
 import tempfile
+import timeit
+
 import h5py
 import glob
 import csv
 import numpy as np
+import pandas as pd
 import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
 
 from collections import Counter
 from typing import Tuple, List
 from data_stack.io.resources import StreamedResource, ResourceFactory
 from data_stack.io.storage_connectors import StorageConnector
+from data_stack.util.logger import logger
+
+
+def _get_most_common_res(samples):
+    # avoiding the use of list appending function, at first it will be created an empty list.
+    samples_amount = len(samples)
+    histo = list(range(samples_amount))
+
+    for entry in range(samples_amount):
+        img = mpimg.imread(samples[entry])
+        histo[entry] = img.shape[0:2]
+
+    most_common = max(histo, key=histo.count)
+
+    return most_common
+
+
+def _get_clean_split_samples(resolution, split_samples):
+    cleaned_split_samples = []
+    for entry in split_samples:
+        img = mpimg.imread(entry)
+        if img.shape[0:2] == resolution:
+            cleaned_split_samples.append(entry)
+
+    return cleaned_split_samples
 
 
 class ODRPreprocessor:
@@ -50,36 +77,14 @@ class ODRPreprocessor:
 
         # samples are images here, which can be intepreted as numpy ndarrays:
         # so a colored image has height*width pixels, each pixel contains three values representing RGB-Color
-        # samples resolution are not equal -> reduce all to 512x512
+        # samples resolution are not equal -> get the most common resolution
 
-        samples_len = len(split_samples)
-        # get a list with all resolutions as tupel with two integers
-        histo = list(range(samples_len))
+        resolution = _get_most_common_res(split_samples)
+        logger.debug(f"resolution {resolution}")
+        # manipualte split_samples, so only wanted resolution is presented
 
-        for entry in range(samples_len):
-            img = mpimg.imread(split_samples[entry])
-            histo[entry] = img.shape[0:2]
-
-        print(histo)
-
-        # transform histo into a list which contains only caclulated resolution values
-        #ppi_set = [img[0] * img[1] for img in histo]
-        # prepare plot
-        bins = len(Counter(histo).keys())
-        fig, ax = plt.subplots()
-        ax.hist(histo, bins=bins)
-        ax.ticklabel_format(style='plain', useOffset=False, axis='both')
-        plt.show()
-
-        # values, counts = np.unique(ppi_set, return_counts=True)
-        # print(f'values: {values} \n counts: {counts}')
-
-
-        # TODO: Images must be reduced
-
-        height = 512
-        width = 512
-        rgb_channel = 3
+        cleaned_split_samples = _get_clean_split_samples(resolution, split_samples)
+        logger.debug(f"len(cleaned_split_samples) {len(cleaned_split_samples)}")
 
     def _get_raw_dataset_split(self,
                                samples_identifier: str,
@@ -104,8 +109,8 @@ class ODRPreprocessor:
             for file in sorted(glob.glob(samples_identifier + '/*.jpg')):
                 raw_samples_paths.append(file)
 
-            print(f'Length Check of raw sample paths, should be 7000 and result is: \n {len(raw_samples_paths)}')
-            print(f'raw_samples_paths on point 10: {raw_samples_paths[10]}')
+            logger.debug(f'Length Check of raw sample paths, should be 7000 and result is: \n {len(raw_samples_paths)}')
+            logger.debug(f'raw_samples_paths on point 10: \n {raw_samples_paths[10]}')
             return raw_samples_paths
 
         def load_metadata(targets_identifier) -> List[np.ndarray]:
@@ -123,11 +128,11 @@ class ODRPreprocessor:
                 # delete last element, because it is the not needed header of csv
                 targets_list = targets_list[:3500]
 
-                print(f'Length Check of raw meta data, should be 3500 and result is: \n {len(targets_list)}')
-                print(f'Checking on content point 10 and entry 10: \n {targets_list[10][18]}')
-                print(f'Checking on content point 10 and entry 10: \n {targets_list[10][17]}')
-                print(f'Checking on content point 10 and entry 10: \n {targets_list[10][16]}')
-                print(f'Checking on length of an entry at point 10: \n {len(targets_list[10])}')
+                logger.debug(f'Length Check of raw meta data, should be 3500 and result is: \n {len(targets_list)}')
+                logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][18]}')
+                logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][17]}')
+                logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][16]}')
+                logger.debug(f'Checking on length of an entry at point 10: \n {len(targets_list[10])}')
             return targets_list
 
         samples_resource = load_sample_paths(samples_identifier=samples_identifier)
