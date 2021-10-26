@@ -91,6 +91,32 @@ def _get_raw_dataset_split(samples_identifier: str,
     return samples_resource, targets_resource
 
 
+def _preprocess_split(h5py_file: h5py.File,
+                      split_name: str,
+                      samples_identifier: str,
+                      target_identifier: str):
+
+    split_samples, split_targets = _get_raw_dataset_split(samples_identifier, target_identifier)
+
+    sample_location = os.path.join(split_name, "samples")
+    target_location = os.path.join(split_name, "targets")
+
+    # samples are images here, which can be intepreted as numpy ndarrays:
+    # so a colored image has height*width pixels, each pixel contains three values representing RGB-Color
+    # samples resolution are not equal -> get the most common resolution
+
+    resolution = _get_most_common_res(split_samples)
+    logger.debug(f"resolution {resolution}")
+    # manipualte split_samples, so only wanted resolution is presented
+
+    cleaned_split_samples = sorted(_get_clean_split_samples(resolution, split_samples))
+    logger.debug(f"len(cleaned_split_samples) {len(cleaned_split_samples)}")
+    df = pd.DataFrame(cleaned_split_samples, index=None, columns=['paths'])
+    logger.debug(f"when does it print? 1")
+    df.to_csv('test.csv')
+    logger.debug(f"when does it print? 2")
+
+
 class ODRPreprocessor:
 
     def __init__(self, storage_connector: StorageConnector):
@@ -104,7 +130,7 @@ class ODRPreprocessor:
         with tempfile.TemporaryFile() as temp_file:
             with h5py.File(temp_file, 'w') as h5py_file:
                 for split_name in self.split_names:
-                    self._preprocess_split(h5py_file,
+                    _preprocess_split(h5py_file,
                                            split_name,
                                            samples_identifier,
                                            targets_identifier)
@@ -114,29 +140,3 @@ class ODRPreprocessor:
             self.storage_connector.set_resource(dataset_identifier, streamed_resource)
             streamed_resource = self.storage_connector.get_resource(dataset_identifier)
         return streamed_resource
-
-    def _preprocess_split(self,
-                          h5py_file: h5py.File,
-                          split_name: str,
-                          samples_identifier: str,
-                          target_identifier: str):
-
-        split_samples, split_targets = _get_raw_dataset_split(samples_identifier, target_identifier)
-
-        sample_location = os.path.join(split_name, "samples")
-        target_location = os.path.join(split_name, "targets")
-
-        # samples are images here, which can be intepreted as numpy ndarrays:
-        # so a colored image has height*width pixels, each pixel contains three values representing RGB-Color
-        # samples resolution are not equal -> get the most common resolution
-
-        resolution = _get_most_common_res(split_samples)
-        logger.debug(f"resolution {resolution}")
-        # manipualte split_samples, so only wanted resolution is presented
-
-        cleaned_split_samples = sorted(_get_clean_split_samples(resolution, split_samples))
-        logger.debug(f"len(cleaned_split_samples) {len(cleaned_split_samples)}")
-        df = pd.DataFrame(cleaned_split_samples, index=None, columns=['paths'])
-        logger.debug(f"when does it print? 1")
-        df.to_csv('test.csv')
-        logger.debug(f"when does it print? 2")
