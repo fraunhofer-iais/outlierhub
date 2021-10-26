@@ -85,6 +85,10 @@ class ODRPreprocessor:
 
         cleaned_split_samples = _get_clean_split_samples(resolution, split_samples)
         logger.debug(f"len(cleaned_split_samples) {len(cleaned_split_samples)}")
+        print(cleaned_split_samples)
+        df = pd.DataFrame(cleaned_split_samples)
+        result = df[0].value_counts()
+        result.to_csv('test.csv')
 
     def _get_raw_dataset_split(self,
                                samples_identifier: str,

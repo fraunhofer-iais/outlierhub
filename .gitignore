@@ -126,3 +126,4 @@ raw_datasets
 /src/outlier_hub/datasets/odr/data/raw/images/
 /src/outlier_hub/datasets/odr/data/raw/metadata/
 /src/outlier_hub/datasets/odr/data/odr.hdf5
+/src/outlier_hub/datasets/odr/test.csv
