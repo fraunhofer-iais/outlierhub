@@ -1,7 +1,5 @@
 import os
 import tempfile
-import timeit
-
 import h5py
 import glob
 import csv
@@ -9,7 +7,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.image as mpimg
 
-from collections import Counter
 from typing import Tuple, List
 from data_stack.io.resources import StreamedResource, ResourceFactory
 from data_stack.io.storage_connectors import StorageConnector
@@ -38,6 +35,60 @@ def _get_clean_split_samples(resolution, split_samples):
             cleaned_split_samples.append(entry)
 
     return cleaned_split_samples
+
+
+def _get_raw_dataset_split(samples_identifier: str,
+                           target_identifier: str) -> Tuple[List[str], List[np.ndarray]]:
+    """
+    get tuple containing two lists, first inherits samples and second target information
+    @param samples_identifier: contains string to necessary images
+    @param target_identifier: contains string to necessary metadata
+    @return: returns a tuple which contains list od samples and list of targets
+    """
+    samples_identifier = samples_identifier
+    targets_identifier = target_identifier
+
+    def load_sample_paths(samples_identifier) -> List[str]:
+        """
+        function to load folder content into arrays and then it returns that same array
+        @param samples_identifier: path to samples, here i.e. images
+        @return: sorted list of paths of raw samples
+        """
+        # Put filespaths  into lists and return them:
+        raw_samples_paths = []
+        for file in sorted(glob.glob(samples_identifier + '/*.jpg')):
+            raw_samples_paths.append(file)
+
+        logger.debug(f'Length Check of raw sample paths, should be 7000 and result is: \n {len(raw_samples_paths)}')
+        logger.debug(f'raw_samples_paths on point 10: \n {raw_samples_paths[10]}')
+        return raw_samples_paths
+
+    def load_metadata(targets_identifier) -> List[np.ndarray]:
+        """
+        function to load folder content into arrays and then it returns that same array
+        @param targets_identifier: path to metadata.csv file
+        @return: sorted list with file name of metadata in tupels, it should only contain
+        """
+        # Put rows as Tuples into lists and return them:
+        with open(targets_identifier, newline='') as targets:
+            reader = csv.reader(targets)
+            targets_list = [np.array(row) for row in reader]
+            # sort by file name ID -> target[18]
+            targets_list = sorted(targets_list, key=lambda target: target[18])
+            # delete last element, because it is the not needed header of csv
+            targets_list = targets_list[:3500]
+
+            logger.debug(f'Length Check of raw meta data, should be 3500 and result is: \n {len(targets_list)}')
+            logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][18]}')
+            logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][17]}')
+            logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][16]}')
+            logger.debug(f'Checking on length of an entry at point 10: \n {len(targets_list[10])}')
+        return targets_list
+
+    samples_resource = load_sample_paths(samples_identifier=samples_identifier)
+    targets_resource = load_metadata(targets_identifier=targets_identifier)
+
+    return samples_resource, targets_resource
 
 
 class ODRPreprocessor:
@@ -70,7 +121,7 @@ class ODRPreprocessor:
                           samples_identifier: str,
                           target_identifier: str):
 
-        split_samples, split_targets = self._get_raw_dataset_split(samples_identifier, target_identifier)
+        split_samples, split_targets = _get_raw_dataset_split(samples_identifier, target_identifier)
 
         sample_location = os.path.join(split_name, "samples")
         target_location = os.path.join(split_name, "targets")
@@ -83,63 +134,9 @@ class ODRPreprocessor:
         logger.debug(f"resolution {resolution}")
         # manipualte split_samples, so only wanted resolution is presented
 
-        cleaned_split_samples = _get_clean_split_samples(resolution, split_samples)
+        cleaned_split_samples = sorted(_get_clean_split_samples(resolution, split_samples))
         logger.debug(f"len(cleaned_split_samples) {len(cleaned_split_samples)}")
-        print(cleaned_split_samples)
-        df = pd.DataFrame(cleaned_split_samples)
-        result = df[0].value_counts()
-        result.to_csv('test.csv')
-
-    def _get_raw_dataset_split(self,
-                               samples_identifier: str,
-                               target_identifier: str) -> Tuple[List[str], List[np.ndarray]]:
-        """
-        get tuple containing two lists, first inherits samples and second target information
-        @param samples_identifier: contains string to necessary images
-        @param target_identifier: contains string to necessary metadata
-        @return: returns a tuple which contains list od samples and list of targets
-        """
-        samples_identifier = samples_identifier
-        targets_identifier = target_identifier
-
-        def load_sample_paths(samples_identifier) -> List[str]:
-            """
-            function to load folder content into arrays and then it returns that same array
-            @param samples_identifier: path to samples, here i.e. images
-            @return: sorted list of paths of raw samples
-            """
-            # Put filespaths  into lists and return them:
-            raw_samples_paths = []
-            for file in sorted(glob.glob(samples_identifier + '/*.jpg')):
-                raw_samples_paths.append(file)
-
-            logger.debug(f'Length Check of raw sample paths, should be 7000 and result is: \n {len(raw_samples_paths)}')
-            logger.debug(f'raw_samples_paths on point 10: \n {raw_samples_paths[10]}')
-            return raw_samples_paths
-
-        def load_metadata(targets_identifier) -> List[np.ndarray]:
-            """
-            function to load folder content into arrays and then it returns that same array
-            @param targets_identifier: path to metadata.csv file
-            @return: sorted list with file name of metadata in tupels, it should only contain
-            """
-            # Put rows as Tuples into lists and return them:
-            with open(targets_identifier, newline='') as targets:
-                reader = csv.reader(targets)
-                targets_list = [np.array(row) for row in reader]
-                # sort by file name ID -> target[18]
-                targets_list = sorted(targets_list, key=lambda target: target[18])
-                # delete last element, because it is the not needed header of csv
-                targets_list = targets_list[:3500]
-
-                logger.debug(f'Length Check of raw meta data, should be 3500 and result is: \n {len(targets_list)}')
-                logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][18]}')
-                logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][17]}')
-                logger.debug(f'Checking on content point 10 and entry 10: \n {targets_list[10][16]}')
-                logger.debug(f'Checking on length of an entry at point 10: \n {len(targets_list[10])}')
-            return targets_list
-
-        samples_resource = load_sample_paths(samples_identifier=samples_identifier)
-        targets_resource = load_metadata(targets_identifier=targets_identifier)
-
-        return samples_resource, targets_resource
+        df = pd.DataFrame(cleaned_split_samples, index=None, columns=['paths'])
+        logger.debug(f"when does it print? 1")
+        df.to_csv('test.csv')
+        logger.debug(f"when does it print? 2")
