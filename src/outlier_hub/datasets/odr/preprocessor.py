@@ -5,7 +5,6 @@ import glob
 import csv
 import numpy as np
 import pandas as pd
-import matplotlib.image as mpimg
 
 from natsort import natsorted
 from PIL import Image
@@ -57,7 +56,7 @@ def _load_metadata(targets_identifier) -> List[np.ndarray]:
     return targets_list
 
 
-def _get_most_common_res(samples):
+def _get_most_common_res(samples) -> Tuple[int,int]:
     # avoiding the use of list appending function, at first it will be created an empty list.
     samples_amount = len(samples)
     histo = list(range(samples_amount))
@@ -72,7 +71,7 @@ def _get_most_common_res(samples):
     return most_common
 
 
-def _get_clean_split_samples(resolution, split_samples):
+def _get_clean_split_samples(resolution, split_samples) -> List[str]:
     cleaned_split_samples = []
     for entry in split_samples:
         with Image.open(entry) as img:
@@ -113,17 +112,9 @@ def _preprocess_split(h5py_file: h5py.File,
     sorted_cleaned_split_samples = natsorted(cleaned_split_samples)
 
     # create csv file with pandas
+    logger.debug(f"Create Pandas dataframe and save it as csv")
     df = pd.DataFrame(sorted_cleaned_split_samples)
     df.to_csv('sorted_cleaned_split_samples.csv', index=False, header=False)
-
-    '''
-    # interpret split samples path as pandas dataframe
-    logger.debug(f"pd.DataFrame(cleaned_split_samples, index=None, columns=['paths']) starts")
-    df = pd.DataFrame(cleaned_split_samples, index=None, columns=['paths'])
-
-    # save dataframe as csv
-    logger.debug(f"df.to_csv('test.csv') starts")
-    df.to_csv('test.csv')'''
 
 
 class ODRPreprocessor:
