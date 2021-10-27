@@ -37,6 +37,9 @@ class ODRFactory(BaseDatasetFactory):
         targets_identifier = self._get_resource_id(element=split + "/metadata/full_df.csv")
         dataset_identifier = self._get_resource_id(element="odr.hdf5")
 
+        logger.debug(f"preprocessor.preprocess(dataset/samples/targets - identifier) starts n"
+                     f"{dataset_identifier, samples_identifier, targets_identifier}")
+
         preprocessor.preprocess(dataset_identifier=dataset_identifier,
                                 samples_identifier=samples_identifier,
                                 targets_identifier=targets_identifier)
@@ -56,6 +59,7 @@ class ODRFactory(BaseDatasetFactory):
 # Code for testing the dataset
 if __name__ == "__main__":
     logger.debug(f"starting event")
+
     # get root workind directory path
     root_path = pathlib.Path.cwd().parents[3]
 
