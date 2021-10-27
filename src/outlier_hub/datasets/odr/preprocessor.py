@@ -6,10 +6,10 @@ import csv
 import numpy as np
 import pandas as pd
 
-from natsort import natsorted
+from natsort import natsorted, ns
 from PIL import Image
 from pathlib import Path
-from typing import Tuple, List
+from typing import Tuple, List, Any
 from data_stack.io.resources import StreamedResource, ResourceFactory
 from data_stack.io.storage_connectors import StorageConnector
 from data_stack.util.logger import logger
@@ -56,7 +56,7 @@ def _load_metadata(targets_identifier) -> List[np.ndarray]:
     return targets_list
 
 
-def _get_most_common_res(samples) -> Tuple[int,int]:
+def _get_most_common_res(samples) -> Tuple[int, int]:
     # avoiding the use of list appending function, at first it will be created an empty list.
     samples_amount = len(samples)
     histo = list(range(samples_amount))
@@ -79,6 +79,18 @@ def _get_clean_split_samples(resolution, split_samples) -> List[str]:
                 cleaned_split_samples.append(entry)
 
     return cleaned_split_samples
+
+
+def _get_clean_split_targets(cleaned_split_samples, split_targets) -> list[tuple[Any, Any]]:
+    cleaned_split_targets = []
+    logger.debug(f"len(split_targets) in get clean targets list: {len(split_targets)}")
+    for sample_entry in cleaned_split_samples:
+        file = Path(sample_entry).name
+        for target_entry in split_targets:
+            if file == target_entry[18]:
+                cleaned_split_targets.append((target_entry[18], target_entry[17]))
+
+    return cleaned_split_targets
 
 
 def _preprocess_split(h5py_file: h5py.File,
@@ -106,15 +118,34 @@ def _preprocess_split(h5py_file: h5py.File,
     # manipulate split_samples, so only wanted resolution is presented
     logger.debug(f"_get_clean_split_samples(resolution, split_samples) starts")
     cleaned_split_samples = _get_clean_split_samples(resolution, split_samples)
+    logger.debug(f"len(cleaned_split_samples):{len(cleaned_split_samples)}")
 
-    # sort itd with natsort libriary, for further development
+    # manipulate split_targets, so only wanted resolution is presented
+    logger.debug(f"_get_clean_split_targets(cleaned_split_samples, split_targets) starts")
+    logger.debug(f"len(split_targets): {len(split_targets)}")
+
+    cleaned_split_targets = _get_clean_split_targets(cleaned_split_samples, split_targets)
+    logger.debug(f"len(cleaned_split_targets):{len(cleaned_split_targets)}")
+
+    # sorting paths
+    # sorting sample paths with natsort libriary
     logger.debug(f"natsorted(cleaned_split_samples) starts")
     sorted_cleaned_split_samples = natsorted(cleaned_split_samples)
 
+    # target paths
+    logger.debug(f"natsorted(split_targets) starts")
+    sorted_cleaned_split_targets = sorted(cleaned_split_targets)
+
     # create csv file with pandas
-    logger.debug(f"Create Pandas dataframe and save it as csv")
+    # sample paths
+    logger.debug(f"Create Pandas dataframe out of sample paths and save it as csv")
     df = pd.DataFrame(sorted_cleaned_split_samples)
     df.to_csv('sorted_cleaned_split_samples.csv', index=False, header=False)
+
+    # target paths
+    logger.debug(f"Create Pandas dataframe out of target paths and save it as csv")
+    df = pd.DataFrame(sorted_cleaned_split_targets)
+    df.to_csv('sorted_cleaned_split_targets.csv', index=False, header=False)
 
 
 class ODRPreprocessor:
