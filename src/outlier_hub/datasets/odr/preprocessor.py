@@ -5,9 +5,10 @@ import glob
 import csv
 import numpy as np
 import pandas as pd
+import io
 
 from natsort import natsorted, ns
-from PIL import Image
+from PIL import Image, ImageFile
 from pathlib import Path
 from typing import Tuple, List, Any
 from data_stack.io.resources import StreamedResource, ResourceFactory
@@ -70,7 +71,7 @@ def _get_most_common_res(samples:List[str]) -> Tuple[int, int]:
     return most_common
 
 
-def _get_clean_split_samples(resolution:tuple[int,int], split_samples) -> List[str]:
+def _get_clean_split_samples(resolution, split_samples) -> List[str]:
     cleaned_split_samples = []
     for entry in split_samples:
         with Image.open(entry) as img:
@@ -80,7 +81,7 @@ def _get_clean_split_samples(resolution:tuple[int,int], split_samples) -> List[s
     return cleaned_split_samples
 
 
-def _get_clean_split_targets(cleaned_split_samples:List[str], split_targets:List[List[str]]) -> list[tuple[Any, Any]]:
+def _get_clean_split_targets(cleaned_split_samples:List[str], split_targets:List[List[str]]) -> List[tuple]:
     cleaned_split_targets = []
     logger.debug(f"len(split_targets) in get clean targets list: {len(split_targets)}")
 
@@ -171,16 +172,16 @@ def _preprocess_split(h5py_file: h5py.File,
     df = pd.DataFrame(sorted_cleaned_split_targets)
     df.to_csv('sorted_cleaned_split_targets.csv', index=False, header=False)
 
-    width = resolution[0]
-    height = resolution[1]
-    rgb_channel = 3
-
     sample_location = os.path.join(split_name, "samples")
     target_location = os.path.join(split_name, "targets")
 
+    with open(fin_clean_split_samples[0], 'rb') as image:
+        type_reference = image.read()
+
     sample_dset = h5py_file.create_dataset(sample_location,
-                                           shape=(len(fin_clean_split_samples), height, width, rgb_channel),
-                                           dtype=int)
+                                           shape=len(sorted_fin_cleaned_split_samples),
+                                           dtype=np.void(type_reference))
+
     # h5py cannot save np.ndarrays with strings by default, costum dtype must be created
     utf8_type = h5py.string_dtype('utf-8')
 
@@ -190,8 +191,12 @@ def _preprocess_split(h5py_file: h5py.File,
                                            shape=(len(sorted_cleaned_split_targets), metadata_info_amount,),
                                            dtype=utf8_type)
 
-    for cnt, sample in enumerate(fin_clean_split_samples):
-        sample_dset[cnt:cnt + 1, :, :] = Image.open(sample)
+    for cnt, sample in enumerate(sorted_fin_cleaned_split_samples):
+        with open(sample,'rb') as image_sample:
+            binary_sample = image_sample.read()
+
+        binary_sample_np = np.asarray(binary_sample)
+        sample_dset[cnt] = binary_sample_np
 
     for cnt, target in enumerate(sorted_cleaned_split_targets):
         target_dset[cnt] = target

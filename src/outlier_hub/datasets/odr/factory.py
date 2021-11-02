@@ -1,7 +1,7 @@
 import os
 import pathlib
 from typing import Tuple, Dict, Any
-
+import PIL
 from data_stack.dataset.factory import BaseDatasetFactory
 from data_stack.dataset.iterator import DatasetIteratorIF
 from data_stack.dataset.meta import IteratorMeta, MetaFactory
@@ -74,5 +74,5 @@ if __name__ == "__main__":
 
     sample, target, tag = odr_iterator[1]
 
-    print(type(odr_iterator[1]))
-    print(type(sample))
+    print(target)
+    print(sample.show())
