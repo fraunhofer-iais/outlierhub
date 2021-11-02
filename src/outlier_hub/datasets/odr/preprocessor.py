@@ -151,7 +151,6 @@ def _preprocess_split(h5py_file: h5py.File,
     fin_clean_split_samples =_get_fin_clean_split_samples(cleaned_split_samples,cleaned_split_targets)
     logger.debug(f"len(fin_clean_split_samples):{len(fin_clean_split_samples)}")
 
-
     # sorting paths
     # sorting sample paths with natsort libriary
     logger.debug(f"natsorted(cleaned_split_samples) starts")
@@ -172,6 +171,30 @@ def _preprocess_split(h5py_file: h5py.File,
     df = pd.DataFrame(sorted_cleaned_split_targets)
     df.to_csv('sorted_cleaned_split_targets.csv', index=False, header=False)
 
+    width = resolution[0]
+    height = resolution[1]
+    rgb_channel = 3
+
+    sample_location = os.path.join(split_name, "samples")
+    target_location = os.path.join(split_name, "targets")
+
+    sample_dset = h5py_file.create_dataset(sample_location,
+                                           shape=(len(fin_clean_split_samples), height, width, rgb_channel),
+                                           dtype=int)
+    # h5py cannot save np.ndarrays with strings by default, costum dtype must be created
+    utf8_type = h5py.string_dtype('utf-8')
+
+    metadata_info_amount = 2
+
+    target_dset = h5py_file.create_dataset(target_location,
+                                           shape=(len(sorted_cleaned_split_targets), metadata_info_amount,),
+                                           dtype=utf8_type)
+
+    for cnt, sample in enumerate(fin_clean_split_samples):
+        sample_dset[cnt:cnt + 1, :, :] = Image.open(sample)
+
+    for cnt, target in enumerate(sorted_cleaned_split_targets):
+        target_dset[cnt] = target
 
 class ODRPreprocessor:
 
@@ -195,6 +218,9 @@ class ODRPreprocessor:
                                       targets_identifier)
                 h5py_file.flush()
                 temp_file.flush()
+
+            logger.debug(f"ResourceFactory.get_resource(dataset_identifier, temp_file) starts"
+                         f"{dataset_identifier, samples_identifier, targets_identifier}")
 
             streamed_resource = ResourceFactory.get_resource(dataset_identifier, temp_file)
 
