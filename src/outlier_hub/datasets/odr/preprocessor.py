@@ -194,10 +194,10 @@ def _preprocess_split(h5py_file: h5py.File,
 
     for cnt, sample in enumerate(sorted_fin_cleaned_split_samples):
         with open(sample, 'rb') as image_sample:
-            binary_sample = image_sample.read()
+            sample_bytes = image_sample.read()
 
-        binary_sample_np = np.asarray(binary_sample)
-        sample_dset[cnt] = binary_sample_np
+        sample_np = np.asarray(sample_bytes)
+        sample_dset[cnt] = sample_np
 
     for cnt, target in enumerate(sorted_cleaned_split_targets):
         target_dset[cnt] = target
