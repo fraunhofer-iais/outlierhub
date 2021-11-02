@@ -16,7 +16,7 @@ from data_stack.io.storage_connectors import StorageConnector
 from data_stack.util.logger import logger
 
 
-def _load_sample_paths(samples_identifier:str) -> List[str]:
+def _load_sample_paths(samples_identifier: str) -> List[str]:
     """
     function to load folder content into arrays and then it returns that same array
     @param samples_identifier: path to samples, here i.e. images
@@ -32,7 +32,7 @@ def _load_sample_paths(samples_identifier:str) -> List[str]:
     return raw_samples_paths
 
 
-def _load_metadata(targets_identifier:str) -> List[np.ndarray]:
+def _load_metadata(targets_identifier: str) -> List[np.ndarray]:
     """
     function to load folder contents into lists in a sorted list
     @param targets_identifier: path to full_df.csv file
@@ -57,7 +57,7 @@ def _load_metadata(targets_identifier:str) -> List[np.ndarray]:
     return targets_list
 
 
-def _get_most_common_res(samples:List[str]) -> Tuple[int, int]:
+def _get_most_common_res(samples: List[str]) -> Tuple[int, int]:
     samples_amount = len(samples)
     histo = list(range(samples_amount))
 
@@ -81,7 +81,7 @@ def _get_clean_split_samples(resolution, split_samples) -> List[str]:
     return cleaned_split_samples
 
 
-def _get_clean_split_targets(cleaned_split_samples:List[str], split_targets:List[List[str]]) -> List[tuple]:
+def _get_clean_split_targets(cleaned_split_samples: List[str], split_targets: List[List[str]]) -> List[tuple]:
     cleaned_split_targets = []
     logger.debug(f"len(split_targets) in get clean targets list: {len(split_targets)}")
 
@@ -94,7 +94,7 @@ def _get_clean_split_targets(cleaned_split_samples:List[str], split_targets:List
     return cleaned_split_targets
 
 
-def _get_fin_clean_split_samples(cleaned_split_samples:List[str], cleaned_split_targets:List[List[str]]) -> List[str]:
+def _get_fin_clean_split_samples(cleaned_split_samples: List[str], cleaned_split_targets: List[List[str]]) -> List[str]:
     fin_clean_split_samples = []
     logger.debug(f"len(split_targets) in get clean targets list: {len(cleaned_split_targets)}")
 
@@ -105,6 +105,7 @@ def _get_fin_clean_split_samples(cleaned_split_samples:List[str], cleaned_split_
                 fin_clean_split_samples.append(sample_entry)
 
     return fin_clean_split_samples
+
 
 def _preprocess_split(h5py_file: h5py.File,
                       split_name: str,
@@ -149,7 +150,7 @@ def _preprocess_split(h5py_file: h5py.File,
     # final filter on split samples, so it matches the filtered targets
     logger.debug(f"len(cleaned_split_samples):{len(cleaned_split_samples)}")
     logger.debug(f"_get_fin_clean_split_samples(cleaned_split_samples,cleaned_split_targets) starts")
-    fin_clean_split_samples =_get_fin_clean_split_samples(cleaned_split_samples,cleaned_split_targets)
+    fin_clean_split_samples = _get_fin_clean_split_samples(cleaned_split_samples, cleaned_split_targets)
     logger.debug(f"len(fin_clean_split_samples):{len(fin_clean_split_samples)}")
 
     # sorting paths
@@ -175,7 +176,7 @@ def _preprocess_split(h5py_file: h5py.File,
     sample_location = os.path.join(split_name, "samples")
     target_location = os.path.join(split_name, "targets")
 
-    with open(fin_clean_split_samples[0], 'rb') as image:
+    with open(sorted_fin_cleaned_split_samples[0], 'rb') as image:
         type_reference = image.read()
 
     sample_dset = h5py_file.create_dataset(sample_location,
@@ -192,7 +193,7 @@ def _preprocess_split(h5py_file: h5py.File,
                                            dtype=utf8_type)
 
     for cnt, sample in enumerate(sorted_fin_cleaned_split_samples):
-        with open(sample,'rb') as image_sample:
+        with open(sample, 'rb') as image_sample:
             binary_sample = image_sample.read()
 
         binary_sample_np = np.asarray(binary_sample)
@@ -200,6 +201,7 @@ def _preprocess_split(h5py_file: h5py.File,
 
     for cnt, target in enumerate(sorted_cleaned_split_targets):
         target_dset[cnt] = target
+
 
 class ODRPreprocessor:
 

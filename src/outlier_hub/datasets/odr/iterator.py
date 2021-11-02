@@ -29,8 +29,9 @@ class ODRIterator(DatasetIterator):
         """
         if len(self) > index:
             # prepare sample for output
-
-            sample_np = np.array(self.samples_dataset[index])
+            # first get the numpy which inherits a bytetype content
+            sample_np = (self.samples_dataset[index]).tobytes()
+            # transform it to bytes and open it with PIL
             sample_bytes = io.BytesIO(sample_np)
             sample = Image.open(sample_bytes)
 
