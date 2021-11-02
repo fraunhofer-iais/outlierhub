@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     odr_iterator, _ = odr_factory.get_dataset_iterator(config={"split": "raw"})
 
-    sample, target, tag = odr_iterator[8]
+    sample, target, tag = odr_iterator[2]
 
     print(target)
-    print(sample.show())
+    sample.show()
