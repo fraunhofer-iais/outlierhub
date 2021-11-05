@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 import h5py
 import glob
@@ -106,7 +107,6 @@ def _get_fin_clean_split_samples(cleaned_split_samples: List[str], cleaned_split
 
     return fin_clean_split_samples
 
-
 def _preprocess_split(h5py_file: h5py.File,
                       split_name: str,
                       samples_identifier: str,
@@ -176,11 +176,12 @@ def _preprocess_split(h5py_file: h5py.File,
     sample_location = os.path.join(split_name, "samples")
     target_location = os.path.join(split_name, "targets")
 
-    with open(sorted_fin_cleaned_split_samples[0], 'rb') as image:
+    with open(sorted_fin_cleaned_split_samples[14], 'rb') as image:
         type_reference = image.read()
+        size_reference = sys.getsizeof(type_reference)
 
     sample_dset = h5py_file.create_dataset(sample_location,
-                                           shape=len(sorted_fin_cleaned_split_samples),
+                                           shape=(len(sorted_fin_cleaned_split_samples), size_reference),
                                            dtype=np.void(type_reference))
 
     # h5py cannot save np.ndarrays with strings by default, costum dtype must be created
@@ -191,13 +192,20 @@ def _preprocess_split(h5py_file: h5py.File,
     target_dset = h5py_file.create_dataset(target_location,
                                            shape=(len(sorted_cleaned_split_targets), metadata_info_amount,),
                                            dtype=utf8_type)
-
     for cnt, sample in enumerate(sorted_fin_cleaned_split_samples):
         with open(sample, 'rb') as image_sample:
             sample_bytes = image_sample.read()
 
         sample_np = np.asarray(sample_bytes)
-        sample_dset[cnt] = sample_np
+
+        sample_dset[cnt, 1] = sample_np
+
+        logger.debug(f" testimage")
+        sample_np = sample_dset[cnt, 1]
+        sample_bytes = sample_np.tobytes()
+        sample_bytes = io.BytesIO(sample_bytes)
+        sample = Image.open(sample_bytes)
+        sample.show()
 
     for cnt, target in enumerate(sorted_cleaned_split_targets):
         target_dset[cnt] = target
