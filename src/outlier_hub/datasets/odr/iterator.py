@@ -15,11 +15,11 @@ class ODRIterator(DatasetIterator):
 
     def __init__(self, data_stream: StreamedResource, split_name: str):
         self.h5py_file = h5py.File(data_stream, "r")
-        self.samples_dataset = self.h5py_file[os.path.join(split_name, "samples")]
-        self.targets_dataset = self.h5py_file[os.path.join(split_name, "targets")]
+        self.sample_groups = self.h5py_file['samples']
+        self.targets_datasets = self.h5py_file['targets']
 
     def __len__(self):
-        return len(self.samples_dataset)
+        return len(self.sample_groups)
 
     def __getitem__(self, index: int):
         """
@@ -28,16 +28,25 @@ class ODRIterator(DatasetIterator):
         @return: sample, target, tag
         """
         if len(self) > index:
-            # prepare sample for output
-            # first get the numpy which inherits a bytetype content
-            sample_np = (self.samples_dataset[index])
-            # transform it to bytes and open it with PIL
-            sample_bytes = io.BytesIO(sample_np)
+            sample_name_left, sample_name_right = self.sample_groups[str(index)]
 
-            sample = Image.open(sample_bytes)
+            sample_left = self.sample_groups[str(index)][sample_name_left]
+            sample_right = self.sample_groups[str(index)][sample_name_right]
 
-            target = self.targets_dataset[index]
+            sample_left = np.array(sample_left)
+            sample_right = np.array(sample_right)
 
-            return sample, target, target
+            sample_left = io.BytesIO(sample_left)
+            sample_right = io.BytesIO(sample_right)
+
+            sample_left = Image.open(sample_left)
+            sample_right = Image.open(sample_right)
+
+            sample_both = (sample_left, sample_right)
+
+            print(type(self.targets_datasets[str(index)]))
+            target = np.asarray(self.targets_datasets[str(index)])
+
+            return sample_both, target, target
         else:
             raise IndexError('index out of range')

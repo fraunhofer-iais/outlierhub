@@ -34,7 +34,7 @@ class ODRFactory(BaseDatasetFactory):
         preprocessor = ODRPreprocessor(self.storage_connector)
 
         samples_identifier = self._get_resource_id(element=split + "/images")
-        targets_identifier = self._get_resource_id(element=split + "/metadata/full_df.csv")
+        targets_identifier = self._get_resource_id(element=split + "/metadata/data.xlsx")
         dataset_identifier = self._get_resource_id(element="odr.hdf5")
 
         logger.debug(f"preprocessor.preprocess(dataset/samples/targets - identifier) starts n"
@@ -73,6 +73,5 @@ if __name__ == "__main__":
     odr_iterator, _ = odr_factory.get_dataset_iterator(config={"split": "raw"})
 
     sample, target, tag = odr_iterator[2]
-
     print(target)
-    sample.show()
+    sample[1].show()

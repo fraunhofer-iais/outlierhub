@@ -35,27 +35,25 @@ def _load_sample_paths(samples_identifier: str) -> List[str]:
 
 def _load_metadata(targets_identifier: str) -> List[np.ndarray]:
     """
-    function to load folder contents into lists in a sorted list
-    @param targets_identifier: path to full_df.csv file
-    @return: sortet list of lists conataining metadata
+    loads xlsx file, and creates a list - each item is a list with 15 items
+    @param: targets_identifier: path to data.xlsx file
+    @return: list of lists containing 15 items
     """
-    # Put rows as Tuples into lists and return them:
-    counter = 0
-    with open(targets_identifier, newline='') as targets:
-        reader = csv.reader(targets)
-        # From a row, it is needed the 17th and 18th position. Last two items
-        targets_list = [row[17:19] for row in reader]
+    # Use pandas to read and manipulate metadata:
+    data_xls = pd.read_excel(targets_identifier, 'Sheet1', index_col=None, engine='openpyxl')
+    # merge diagnostics
+    data_xls["diagnostics"] = data_xls["Left-Diagnostic Keywords"] + ', ' + data_xls["Right-Diagnostic Keywords"]
+    data_xls.drop("Left-Diagnostic Keywords", inplace=True, axis=1)
+    data_xls.drop("Right-Diagnostic Keywords", inplace=True, axis=1)
+    # rearrange columns
+    cols = data_xls.columns.tolist()
+    columns = ['ID', 'Patient Age', 'Patient Sex', 'Left-Fundus', 'Right-Fundus', 'diagnostics',
+               'N', 'D', 'G', 'C', 'A', 'H', 'M', 'O']
+    data_xls = data_xls[columns]
+    # get a list of metadata
+    data_values = data_xls.values.tolist()
 
-        # sort by file name ID -> target[18]
-        targets_list = sorted(targets_list, key=lambda target: target[1])
-
-        # delete last element, because it is the not needed header of csv
-        # targets_list = targets_list[:3500]
-
-        logger.debug(f'len(targets_list): {len(targets_list)}')
-        logger.debug(f'targets_list[10][18]: {targets_list[10][0]}')
-        logger.debug(f'len(targets_list[10]): {len(targets_list[1])}')
-    return targets_list
+    return data_values
 
 
 def _get_most_common_res(samples: List[str]) -> Tuple[int, int]:
@@ -82,133 +80,183 @@ def _get_clean_split_samples(resolution, split_samples) -> List[str]:
     return cleaned_split_samples
 
 
-def _get_clean_split_targets(cleaned_split_samples: List[str], split_targets: List[List[str]]) -> List[tuple]:
-    cleaned_split_targets = []
-    logger.debug(f"len(split_targets) in get clean targets list: {len(split_targets)}")
+def _create_temp_list(split_targets, split_samples) -> List[Any]:
+    # comprehension list to initiate temp_list with meta data
+    temp_list = [[entry, [None, None]] for entry in split_targets]
 
-    for target_entry in split_targets:
-        for sample_entry in cleaned_split_samples:
-            file = Path(sample_entry).name
-            if file == target_entry[1]:
-                cleaned_split_targets.append((target_entry[1], target_entry[0]))
+    for item in temp_list:
+        for sample_item in split_samples:
+            file = Path(sample_item).name
+            if file == item[0][3]:
+                item[1][0] = sample_item
+            elif file == item[0][4]:
+                item[1][1] = sample_item
+    return temp_list
 
-    return cleaned_split_targets
 
+def _clean_temp_list(temp_list):
+    clean_temp_list = []
+    for item in temp_list:
+        if not (item[1] == [None, None]):
+            clean_temp_list.append(item)
 
-def _get_fin_clean_split_samples(cleaned_split_samples: List[str], cleaned_split_targets: List[List[str]]) -> List[str]:
-    fin_clean_split_samples = []
-    logger.debug(f"len(split_targets) in get clean targets list: {len(cleaned_split_targets)}")
+    return clean_temp_list
 
-    for sample_entry in cleaned_split_samples:
-        for target_entry in cleaned_split_targets:
-            file = Path(sample_entry).name
-            if file == target_entry[0]:
-                fin_clean_split_samples.append(sample_entry)
-
-    return fin_clean_split_samples
 
 def _preprocess_split(h5py_file: h5py.File,
                       split_name: str,
                       samples_identifier: str,
                       targets_identifier: str):
-    logger.debug(f"_preprocess_split(split_name,samples_identifier,targets_identifier) starts  "
-                 f"{split_name, samples_identifier, targets_identifier}")
-
-    logger.debug(f"load_sample_paths(samples_identifier) starts")
+    logger.debug(f"calling load_sample_paths(samples_identifier)")
     split_samples = _load_sample_paths(samples_identifier)
 
-    logger.debug(f"load_metadata(targets_identifier) starts")
+    logger.debug(f"calling load_metadata(targets_identifier)")
     split_targets = _load_metadata(targets_identifier)
 
-    # samples are images here, which can be intepreted as numpy 3D-arrays:
+    # sample information are paths to images
+    # samples are at the end images here, which can be interpreted as numpy 3D-arrays:
     # so a colored image has height*width pixels, each pixel contains three values representing RGB-Color
     # Each color of RGB is a so called channel [height, width, RGB-Value]
 
-    # challenge: find only samples, where the resolution is the same and the target is provided
-    # 1) find resolution
-    # 2) filter samples
-    # 3) filter targets with filtered_samples
-    # 4) filter filtered_samples with filtered_targets
-    # 5) solution should be two csv files with only wanted and correct sorted information
+    # necessary: find only samples, where the resolution is the same and the target is provided
+    # 1) find resolution and filter samples with estimated resolution
+    # 2) create new temp List for indexing targets to associated samples [meta,(sample1,sample2)]
+    # 3) clean temp List from empty samples
+    # 4) divide temp list into target and samples
+    # 5) create csv files for manual verification of data
+    # 6) prepare hdf datasets
+    # 7) enrich datasets with data
 
+    # 1) find resolution
     # samples resolution are not equal -> get the most common resolution
-    logger.debug(f"_get_most_common_res(split_samples) starts")
+    logger.debug(f"calling  _get_most_common_res(split_samples)")
     resolution = _get_most_common_res(split_samples)
     logger.debug(f"resolution {resolution}")
 
-    # filter split_samples, so only wanted resolution is presented
+    # filter split_samples, so only wanted resolution is provided
     logger.debug(f"_get_clean_split_samples(resolution, split_samples) starts")
     cleaned_split_samples = _get_clean_split_samples(resolution, split_samples)
     logger.debug(f"len(cleaned_split_samples):{len(cleaned_split_samples)}")
 
-    # filter split_targets, result will contain targets only for provided samples
-    logger.debug(f"len(split_targets): {len(split_targets)}")
-    logger.debug(f"_get_clean_split_targets(cleaned_split_samples, split_targets) starts")
-    cleaned_split_targets = _get_clean_split_targets(cleaned_split_samples, split_targets)
-    logger.debug(f"len(cleaned_split_targets):{len(cleaned_split_targets)}")
+    # 2) create temp list : [meta,(sample1,sample2)]
+    # 1. item contains meta info, 2. info is a tuple inheriting associated sample paths
+    logger.debug(f"length & type of split_targets: {len(split_targets)}, {type(split_targets)} ")
+    logger.debug(f"function calling: _create_temp_list(split_targets)")
+    temp_list = _create_temp_list(split_targets, cleaned_split_samples)
 
-    # final filter on split samples, so it matches the filtered targets
-    logger.debug(f"len(cleaned_split_samples):{len(cleaned_split_samples)}")
-    logger.debug(f"_get_fin_clean_split_samples(cleaned_split_samples,cleaned_split_targets) starts")
-    fin_clean_split_samples = _get_fin_clean_split_samples(cleaned_split_samples, cleaned_split_targets)
-    logger.debug(f"len(fin_clean_split_samples):{len(fin_clean_split_samples)}")
+    # 3) clean temp List from empty samples
+    print(f"clean temp_list from empty targets without samples")
+    print(f"length of temp_list: {len(temp_list)}")
+    logger.debug(f"calling _clean_temp_list")
+    clean_temp_list = _clean_temp_list(temp_list)
+    print(f"length of clean_temp_list: {len(clean_temp_list)}")
 
-    # sorting paths
-    # sorting sample paths with natsort libriary
-    logger.debug(f"natsorted(cleaned_split_samples) starts")
-    sorted_fin_cleaned_split_samples = natsorted(fin_clean_split_samples)
+    # 4) divide the list into target and sample list
+    targets_list = [entry[0] for entry in clean_temp_list]
+    samples_list = [entry[1] for entry in clean_temp_list]
 
-    # target paths
-    logger.debug(f"natsorted(split_targets) starts")
-    sorted_cleaned_split_targets = natsorted(cleaned_split_targets)
+    logger.debug(f"Create Pandas dataframe of clean_temp_list list and save it as csv")
+    df = pd.DataFrame(temp_list)
+    df.to_csv('clean_temp_list.csv', index=False, header=False)
 
-    # create csv file with pandas
-    # sample paths
-    logger.debug(f"Create Pandas dataframe out of sample paths and save it as csv")
-    df = pd.DataFrame(sorted_fin_cleaned_split_samples)
-    df.to_csv('sorted_fin_cleaned_split_samples.csv', index=False, header=False)
+    # 5) create csv file with pandas - this is for manual verification
+    logger.debug(f"Create Pandas dataframe of target and samples list and save it as csv")
+    df = pd.DataFrame(targets_list)
+    df.to_csv('targets_list.csv', index=False, header=False)
+    df = pd.DataFrame(samples_list)
+    df.to_csv('samples_list.csv', index=False, header=False)
 
-    # target paths
-    logger.debug(f"Create Pandas dataframe out of target paths and save it as csv")
-    df = pd.DataFrame(sorted_cleaned_split_targets)
-    df.to_csv('sorted_cleaned_split_targets.csv', index=False, header=False)
+    # create h5py groups, one for target and one for samples, every entry will be a dataset then
+    logger.debug(f"Create h5py groups")
+    sample_group = h5py_file.create_group('samples')
+    target_group = h5py_file.create_group('targets')
 
-    sample_location = os.path.join(split_name, "samples")
-    target_location = os.path.join(split_name, "targets")
+    # saving the images in samples group
+    counter = 0
 
-    with open(sorted_fin_cleaned_split_samples[14], 'rb') as image:
-        type_reference = image.read()
-        size_reference = sys.getsizeof(type_reference)
+    for entry in samples_list:
+        eyepair_sample_group = sample_group.create_group(str(counter))
+        counter = counter + 1
 
-    sample_dset = h5py_file.create_dataset(sample_location,
-                                           shape=(len(sorted_fin_cleaned_split_samples), size_reference),
-                                           dtype=np.void(type_reference))
+        img_path_1 = entry[0]
+        img_name_1 = Path(entry[0]).name
 
+        img_path_2 = entry[1]
+        img_name_2 = Path(entry[1]).name
+
+        # open image, behind the path
+        with open(img_path_1, 'rb') as img:
+            binary_data_1 = img.read()
+
+        with open(img_path_2, 'rb') as img:
+            binary_data_2 = img.read()
+
+        binary_data_np_1 = np.asarray(binary_data_1)
+        binary_data_np_2 = np.asarray(binary_data_2)
+
+        # save it in the subgroup. each eyepair_sample_group contains images from one patient.
+        h5py_file = eyepair_sample_group.create_dataset(img_name_1, data=binary_data_np_1)
+        h5py_file = eyepair_sample_group.create_dataset(img_name_2, data=binary_data_np_2)
+
+    # saving the targets in targets group
     # h5py cannot save np.ndarrays with strings by default, costum dtype must be created
     utf8_type = h5py.string_dtype('utf-8')
 
-    metadata_info_amount = 2
+    # metadata_info_amount = 14
 
-    target_dset = h5py_file.create_dataset(target_location,
-                                           shape=(len(sorted_cleaned_split_targets), metadata_info_amount,),
-                                           dtype=utf8_type)
-    for cnt, sample in enumerate(sorted_fin_cleaned_split_samples):
-        with open(sample, 'rb') as image_sample:
-            sample_bytes = image_sample.read()
+    counter = 0
+    for entry in targets_list:
 
-        sample_np = np.asarray(sample_bytes)
+        entry = [str(item) for item in entry]
 
-        sample_dset[cnt, 1] = sample_np
+        h5py_file = target_group.create_dataset(str(counter),
+                                                data=entry,
+                                                dtype=utf8_type)
+        counter = counter + 1
 
-        logger.debug(f" testimage")
-        sample_np = sample_dset[cnt, 1]
-        sample_bytes = sample_np.tobytes()
-        sample_bytes = io.BytesIO(sample_bytes)
-        sample = Image.open(sample_bytes)
-        sample.show()
+    '''
+    # paths for h5py
+    sample_location = os.path.join(split_name, "samples")
+    target_location = os.path.join(split_name, "targets")
 
-    for cnt, target in enumerate(sorted_cleaned_split_targets):
-        target_dset[cnt] = target
+    # 6) prepare hdf datasets
+    # with open(samples_list[0][0], 'rb') as image:
+    #    type_reference = image.read()
+    #    print(f'type(image.read(): {type(image.read())}')
+    #    data_shape = np.asarray(image.read())
+
+    # sample_dset = h5py_file.create_dataset(sample_location,
+    #                                       shape=(len(clean_temp_list), [data_shape, data_shape]),
+    #                                       dtype=np.void(type_reference))
+
+    # 7) enrich datasets with data
+    sample_dset = h5py_file.create_dataset(sample_location,
+                                           data=samples_list)
+    
+    for cnt, sample in enumerate(samples_list):
+        tmp_sample_list = []
+
+        with open(sample[0], 'rb') as image_sample:
+            sample_left_bytes = image_sample.read()
+        tmp_sample_list.append(sample_left_bytes)
+
+        with open(sample[1], 'rb') as image_sample:
+            sample_right_bytes = image_sample.read()
+        tmp_sample_list.append(sample_right_bytes)
+
+        sample_pair_np = np.asarray(tmp_sample_list)
+        sample_dset[cnt, 1] = sample_pair_np
+
+        #logger.debug(f" testimage")
+        #sample_np = sample_dset[cnt, 1]
+        #sample_bytes = sample_np.tobytes()
+        #sample_bytes = io.BytesIO(sample_bytes)
+        #sample = Image.open(sample_bytes)
+        #sample.show()
+        
+            for cnt, target in enumerate(targets_list):
+        target_dset[cnt] = np.array(target)
+    '''
 
 
 class ODRPreprocessor:

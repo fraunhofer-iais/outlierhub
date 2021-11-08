@@ -9,6 +9,7 @@ from data_stack.io.storage_connectors import StorageConnector, FileStorageConnec
 
 from outlier_hub.datasets.ham10k.preprocessor import HAMPreprocessor
 from outlier_hub.datasets.ham10k.iterator import HAMIterator
+from data_stack.util.logger import logger
 
 
 class HAMFactory(BaseDatasetFactory):
@@ -34,7 +35,7 @@ class HAMFactory(BaseDatasetFactory):
         preprocessor = HAMPreprocessor(self.storage_connector)
 
         samples_identifier = self._get_resource_id(element=split + "/images")
-        targets_identifier = self._get_resource_id(element=split + "/metadata/HAM10000_metadata.csv")
+        targets_identifier = self._get_resource_id(element=split + "/metadata/HAM10000_metadata_sorted.csv")
         dataset_identifier = self._get_resource_id(element="ham10k.hdf5")
 
         preprocessor.preprocess(dataset_identifier=dataset_identifier,
@@ -71,3 +72,4 @@ if __name__ == "__main__":
 
     print(type(ham_iterator[1]))
     print(type(sample))
+    logger.debug(f"finished")
