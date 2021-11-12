@@ -6,7 +6,7 @@ from data_stack.dataset.factory import BaseDatasetFactory
 from data_stack.dataset.iterator import DatasetIteratorIF
 from data_stack.dataset.meta import IteratorMeta, MetaFactory
 from data_stack.io.storage_connectors import StorageConnector, FileStorageConnector
-
+from PIL import Image
 from outlier_hub.datasets.ham10k.preprocessor import HAMPreprocessor
 from outlier_hub.datasets.ham10k.iterator import HAMIterator
 from data_stack.util.logger import logger
@@ -68,8 +68,8 @@ if __name__ == "__main__":
 
     ham_iterator, _ = ham_factory.get_dataset_iterator(config={"split": "raw"})
 
-    sample, target, tag = ham_iterator[1]
+    sample, target, tag = ham_iterator[500]
 
-    print(type(ham_iterator[1]))
-    print(type(sample))
+    print(target)
+    sample.show()
     logger.debug(f"finished")

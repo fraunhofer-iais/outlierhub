@@ -10,6 +10,7 @@ from data_stack.util.logger import logger
 from data_stack.io.resources import StreamedResource, ResourceFactory
 from data_stack.io.storage_connectors import StorageConnector
 from typing import Tuple, List
+from pathlib import Path
 
 
 def _get_raw_split_samples(samples_identifier: str) -> List[str]:
@@ -64,34 +65,60 @@ def _preprocess_split(h5py_file: h5py.File,
     sample_location = os.path.join(split_name, "samples")
     target_location = os.path.join(split_name, "targets")
 
+    # create h5py groups, one for target and one for samples, every entry will be a dataset then
+    logger.debug(f"Create h5py groups")
+    sample_group = h5py_file.create_group('samples')
+    target_group = h5py_file.create_group('targets')
+
     logger.debug(f" prepare and calling sample_dset = h5py_file.create_dataset")
     # samples are images here, which can be intepreted as numpy ndarrays:
     # so a colored image has height*width pixels, each pixel contains three values representing RGB-Color
-    height = 450
-    width = 600
-    rgb_channel = 3
-    sample_dset = h5py_file.create_dataset(sample_location,
-                                           shape=(len(split_samples), height, width, rgb_channel),
-                                           dtype=int)
+    # height = 450
+    # width = 600
+    # rgb_channel = 3
+    # sample_dset = h5py_file.create_dataset(sample_location,
+    #                                        shape=(len(split_samples), height, width, rgb_channel),
+    #                                        dtype=int)
+    # logger.debug(f"enrich h5py_file with sample data")
+    # for cnt, sample in enumerate(split_samples):
+    #    sample_dset[cnt:cnt + 1, :, :] = mpimg.imread(sample)
+    counter = 0
+    for img_path in split_samples:
+
+        img_name = Path(img_path).name
+
+        # open image in binary, behind the path
+        with open(img_path, 'rb') as img:
+            img_binary = img.read()
+
+        img_binary_np = np.asarray(img_binary)
+
+        h5py_file = sample_group.create_dataset(str(counter), data=img_binary_np)
+        counter = counter + 1
 
     logger.debug(f" prepare and calling target_dset = h5py_file.create_dataset")
     # h5py cannot save np.ndarrays with strings by default, costum dtype must be created
     utf8_type = h5py.string_dtype('utf-8')
 
     # There are 8 meta information for each sample
-    metadata_info_amount = 8
+    # metadata_info_amount = 8
 
-    target_dset = h5py_file.create_dataset(target_location,
-                                           shape=(len(split_targets), metadata_info_amount,),
-                                           dtype=utf8_type)
-
-    logger.debug(f"enrich h5py_file with sample data")
-    for cnt, sample in enumerate(split_samples):
-        sample_dset[cnt:cnt + 1, :, :] = mpimg.imread(sample)
+    # target_dset = h5py_file.create_dataset(target_location,
+    #                                        shape=(len(split_targets), metadata_info_amount,),
+    #                                       dtype=utf8_type)
 
     logger.debug(f"enrich h5py_file with sample data")
-    for cnt, target in enumerate(split_targets):
-        target_dset[cnt] = target
+    counter = 0
+    for target in split_targets:
+
+        target = [str(item) for item in target]
+
+        h5py_file = target_group.create_dataset(str(counter),
+                                                data=target,
+                                                dtype=utf8_type)
+        counter = counter + 1
+    # for cnt, target in enumerate(split_targets):
+    #    target_dset[cnt] = target
 
 
 class HAMPreprocessor:
