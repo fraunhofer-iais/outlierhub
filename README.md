@@ -14,6 +14,7 @@ Currentyly supported datasets:
 * [TREC](https://cogcomp.seas.upenn.edu/Data/QA/QC/)
 * [MNIST](http://yann.lecun.com/exdb/mnist/)
 * [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist)
+* [EMNIST](https://www.nist.gov/itl/products-and-services/emnist-dataset)
 * [Newsgroups](http://qwone.com/~jason/20Newsgroups/)
 
 Furthermore, OutlierHub supports the following toy datasets:
