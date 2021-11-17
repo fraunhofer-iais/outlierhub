@@ -35,7 +35,8 @@ class EMNISTFactory(BaseDatasetFactory):
             is_train_split = split_inner == "train"
             # download train split
             torchvision.datasets.EMNIST(root=tmpdirname, download=True, train=is_train_split, split=split_emnist)
-            src = os.path.join(tmpdirname, f"EMNIST/processed/training_{split_emnist}.pt")
+            file_name = f"training_{split_emnist}.pt" if is_train_split else f"test_{split_emnist}.pt"
+            src = os.path.join(tmpdirname, f"EMNIST/processed/{file_name}")
             identifier = self._get_resource_id(data_type="raw", split=split, element="samples.pt")
             with open(src, "rb") as fd:
                 resource = ResourceFactory.get_resource(identifier=identifier, file_like_object=fd)
@@ -76,8 +77,8 @@ if __name__ == "__main__":
 
     factory = EMNISTFactory(storage_connector)
     alphabet = list(string.ascii_lowercase)
-    iterator, _ = factory.get_dataset_iterator(config={"split": "letters_test"})
-    for i in range(20):
+    iterator, _ = factory.get_dataset_iterator(config={"split": "letters_train"})
+    for i in range(1):
         img, target, tag = iterator[i+20]
         print(alphabet[target])
         plt.imshow(img)
