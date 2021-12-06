@@ -1,6 +1,5 @@
 
 import os
-import csv
 import glob
 import tempfile
 import matplotlib.image as mpimg
@@ -96,9 +95,6 @@ class HAMPreprocessor:
         counter = 0
         for img_path in split_samples:
 
-            #img_name = Path(img_path).name
-            #print(f'img_name: {img_name}')
-
             # open image in binary, behind the path
             with open(img_path, 'rb') as img:
                 img_binary = img.read()
@@ -107,15 +103,3 @@ class HAMPreprocessor:
 
             h5py_file = sample_group.create_dataset(str(counter), data=img_binary_np)
             counter = counter + 1
-
-        print(f'h5py_file.__sizeof__(): {h5py_file.__sizeof__()}')
-
-
-
-        #sample_dset = h5py_file.create_dataset('samples',
-        #                                       shape=(len(split_samples), height, width, rgb_channel),
-        #                                       chunks = True,
-        #                                       )
-
-        #for cnt, img_path in enumerate(split_samples):
-        #    sample_dset[cnt:cnt + 1, :, :] = np.array(transform(Image.open(img_path)))

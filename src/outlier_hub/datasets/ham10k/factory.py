@@ -43,11 +43,6 @@ class Ham10kFactory(BaseDatasetFactory):
                                                     root=train_path,
                                                     filename = url_dict['file_name'])
 
-            # train_path = os.path.join(train_path, url_dict['file_name'])                                        
-            # archive = zipfile.ZipFile(train_path)
-            # print(archive.namelist())
-
-
     def _prepare(self, split: str):
         preprocessor = HAMPreprocessor(self.storage_connector)
         raw_samples_identifier = self._get_resource_id(data_type = 'raw', data_split = split + '/raw_images.zip')
