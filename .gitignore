@@ -108,7 +108,9 @@ venv.bak/
 # Vscode
 .vscode/
 .history/
+zip/
 
+src/outlier_hub/datasets/ham10k/data/
 example_file_storage
 logo/logo.svg
 file_storage
