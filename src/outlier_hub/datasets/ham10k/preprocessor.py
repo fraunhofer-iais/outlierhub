@@ -1,7 +1,19 @@
-import os 
-from data_stack.io.storage_connectors import StorageConnector
+
+import os
+import csv
+import glob
+import tempfile
+import matplotlib.image as mpimg
+from typing import Optional, Tuple, List
+import numpy as np
 from zipfile import ZipFile
-import logging
+from PIL import Image
+from torchvision import transforms
+import h5py
+import pandas as pd
+from data_stack.io.resources import StreamedResource, ResourceFactory
+from data_stack.io.storage_connectors import StorageConnector
+from pathlib import Path
 
 class HAMPreprocessor:
 
@@ -10,7 +22,7 @@ class HAMPreprocessor:
 
     def unzip_samples(self, sample_file: str):
 
-        new_filepath = sample_file.split('.')[1]
+        new_filepath = sample_file.split('.')[0]
 
         zip_file = ZipFile(sample_file, 'r')
 
@@ -34,33 +46,76 @@ class HAMPreprocessor:
                    raw_samples_identifier: str,
                    raw_targets_identifier: str,
                    prep_dataset_identifier: str):
-     
-        raw_samples_identifier = self.unzip_samples(raw_samples_identifier)
-        print(type(raw_samples_identifier))
-        print(len(raw_samples_identifier))
-        # logging.debug(f'samples = zipfile.ZipFile(raw_samples_identifier, 'r')')
-        # samples = zipfile.ZipFile(raw_samples_identifier, 'r')
-        
-        # print(type(samples))
-        # print(samples)
 
-        # samples = raw_samples_identifier.split(',')
-        # logging.debug(f'samples = raw_samples_identifier.split(',')')
-        # print(type(samples))
-        # print(samples)
+        self.split_names = ["raw"]
+
+        # following line is needed, if data is not already retrieved
+        raw_samples_dir = self.unzip_samples(raw_samples_identifier)
+        raw_targets_dir = self.unzip_samples(raw_targets_identifier)
+
+        # following line is needed, when data is already provided
+        #raw_samples_identifier = raw_samples_identifier.split('.')[0]
+        #raw_samples_identifier = raw_samples_identifier.split('.')[0]
+
+        if not os.path.exists(prep_dataset_identifier):
+            os.makedirs(os.path.dirname(prep_dataset_identifier), exist_ok=True)
 
 
-        # if not os.path.exists(prep_dataset_identifier):
-        #     os.makedirs(os.path.dirname(prep_dataset_identifier), exist_ok=True)
-        
-        # with h5py.File(prep_dataset_identifier, 'w') as h5py_file:
-        #    self.prepare_dataset(h5py_file,
-        #                            raw_samples_identifier,
-        #                            raw_targets_identifier,
-        #                             )
-            #h5py_file.flush()
-            #temp_file.flush()
-            #streamed_resource = ResourceFactory.get_resource(prep_dataset_identifier, temp_file)
-            #self.storage_connector.set_resource(prep_dataset_identifier, streamed_resource)
-            #streamed_resource = self.storage_connector.get_resource(prep_dataset_identifier)
-        #return streamed_resource
+        with tempfile.TemporaryFile() as temp_file:
+            with h5py.File(temp_file, 'w') as h5py_file:
+                self.prepare_dataset(h5py_file,
+                                    raw_samples_dir,
+                                    raw_targets_dir)
+                h5py_file.flush()
+                temp_file.flush()
+            streamed_resource = ResourceFactory.get_resource(prep_dataset_identifier, temp_file)
+            self.storage_connector.set_resource(prep_dataset_identifier, streamed_resource)
+            streamed_resource = self.storage_connector.get_resource(prep_dataset_identifier)
+
+        return streamed_resource
+
+    def prepare_dataset(self,
+                        h5py_file : h5py.File,
+                        raw_samples_identifier,
+                        raw_targets_identifier):
+
+        df = pd.read_csv('zip/ISIC2018_Task3_Training_GroundTruth.csv', header=0)
+        print(df.head())
+
+        df = df.sort_values(by = 'image')
+        labels_arr = df.iloc[:, 1:len(df.columns)].values
+
+        target_dset = h5py_file.create_dataset('targets', data = labels_arr)
+
+        sample_group = h5py_file.create_group('samples')
+
+        print(f'raw_samples_identifier): {raw_samples_identifier}')
+        split_samples = sorted(glob.glob(raw_samples_identifier + '/*.jpg'))
+        print(f'len(split_samples): {len(split_samples)}')
+
+        counter = 0
+        for img_path in split_samples:
+
+            #img_name = Path(img_path).name
+            #print(f'img_name: {img_name}')
+
+            # open image in binary, behind the path
+            with open(img_path, 'rb') as img:
+                img_binary = img.read()
+
+            img_binary_np = np.asarray(img_binary)
+
+            h5py_file = sample_group.create_dataset(str(counter), data=img_binary_np)
+            counter = counter + 1
+
+        print(f'h5py_file.__sizeof__(): {h5py_file.__sizeof__()}')
+
+
+
+        #sample_dset = h5py_file.create_dataset('samples',
+        #                                       shape=(len(split_samples), height, width, rgb_channel),
+        #                                       chunks = True,
+        #                                       )
+
+        #for cnt, img_path in enumerate(split_samples):
+        #    sample_dset[cnt:cnt + 1, :, :] = np.array(transform(Image.open(img_path)))

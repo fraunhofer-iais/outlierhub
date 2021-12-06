@@ -2,6 +2,7 @@
 
 from typing import Tuple, Dict, Any
 import logging
+from PIL.Image import Image
 from data_stack.dataset.factory import BaseDatasetFactory
 from data_stack.io.storage_connectors import StorageConnector, FileStorageConnector
 from data_stack.dataset.iterator import DatasetIteratorIF
@@ -66,6 +67,7 @@ class Ham10kFactory(BaseDatasetFactory):
             self._retrieve_raw()
             self._prepare(split)
         dataset_identifier = self._get_resource_id(data_type = 'preprocessed', data_split = os.path.join(split, self.dataset_name))
+        print('dataset_identifier:', dataset_identifier)
         #dataset_resource = self.storage_connector.get_resource(identifier = dataset_identifier)
         meta = MetaFactory.get_iterator_meta(sample_pos=0, target_pos=1, tag_pos=2)
         return HAMIterator(dataset_identifier), meta
@@ -88,6 +90,8 @@ if __name__ == "__main__":
         ham10k_iterator, _ = ham10k_factory.get_dataset_iterator(config={"split": "train"})
         
         print(len(ham10k_iterator))
-        sample, target, tag = ham10k_iterator[20]
-        print(sample.size())
-        print(target)
+        for i in range(10):
+            sample, target, tag = ham10k_iterator[i]
+            Image.show(sample)
+            print(target)
+            print(tag)

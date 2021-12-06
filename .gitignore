@@ -108,6 +108,7 @@ venv.bak/
 # Vscode
 .vscode/
 .history/
+zip/
 
 example_file_storage
 logo/logo.svg
