@@ -10,6 +10,8 @@ from data_stack.dataset.meta import IteratorMeta, MetaFactory
 import os
 import torchvision
 import tempfile
+from data_stack.util.logger import logger
+import pathlib
 from preprocessor import HAMPreprocessor
 from iterator import HAMIterator
 
@@ -22,7 +24,9 @@ class Ham10kFactory(BaseDatasetFactory):
                                     'train_labels': {'url': 'https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_GroundTruth.zip',
                                                   'file_name':'train_labels.zip'}
                                   }
+
         self.data_path = storage_connector.root_path
+
         self.dataset_name = 'isic2018.hdf5'
 
         super().__init__(storage_connector)
@@ -36,8 +40,11 @@ class Ham10kFactory(BaseDatasetFactory):
 
     def _retrieve_raw(self):
         for url_dict in self.download_train_url.values():
+            
+            logger.debug(f'self.data_path: {self.data_path}')
 
             train_path = self._get_resource_id(data_type='raw', data_split='train')
+            logger.debug(f'train_path one: {train_path}')
 
             torchvision.datasets.utils.download_url(url_dict['url'],
                                                     root=train_path,
@@ -72,7 +79,30 @@ class Ham10kFactory(BaseDatasetFactory):
         return self._get_iterator(**config)
 
 if __name__ == "__main__":
+    
+    # get root workind directory path
+    root_path = pathlib.Path.cwd()
+    logger.debug(f' pathlib.Path.cwd(): { pathlib.Path.cwd()}')
+    logger.debug(f' root_path = pathlib.Path.cwd().parents[3]: { pathlib.Path.cwd().parents[3]}')
 
+    # complete path to manual added data
+    data_path = os.path.join(root_path, "src/outlier_hub/datasets/ham10k/data")
+
+    storage_connector = FileStorageConnector(root_path=data_path)
+
+    ham10k_factory = Ham10kFactory(storage_connector)
+
+    ham10k_iterator, _ = ham10k_factory.get_dataset_iterator(config={"split": "train"})
+
+    print(len(ham10k_iterator))
+
+    for i in range(2):
+        sample, target, tag = ham10k_iterator[i]
+        Image.show(sample)
+        print(target)
+        print(tag)
+
+'''
     with tempfile.TemporaryDirectory() as root:
         example_file_storage_path = os.path.join(root, "dataset_storage")
 
@@ -85,8 +115,9 @@ if __name__ == "__main__":
         ham10k_iterator, _ = ham10k_factory.get_dataset_iterator(config={"split": "train"})
         
         print(len(ham10k_iterator))
-        for i in range(10):
+        for i in range(5):
             sample, target, tag = ham10k_iterator[i]
             Image.show(sample)
             print(target)
             print(tag)
+'''
