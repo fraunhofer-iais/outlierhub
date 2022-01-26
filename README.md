@@ -15,7 +15,9 @@ Currentyly supported datasets:
 * [MNIST](http://yann.lecun.com/exdb/mnist/)
 * [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist)
 * [EMNIST](https://www.nist.gov/itl/products-and-services/emnist-dataset)
+* [HAM10k](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/DBW86T)
 * [Newsgroups](http://qwone.com/~jason/20Newsgroups/)
+* [ODR](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/DBW86T)
 
 Furthermore, OutlierHub supports the following toy datasets:
 

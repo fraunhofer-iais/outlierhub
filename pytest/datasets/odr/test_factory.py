@@ -1,15 +1,12 @@
-import tempfile
 import os
 import logging
 import pathlib
 import random
-import numpy as np
-import torch
+
 from data_stack.io.storage_connectors import StorageConnectorFactory
-from outlier_hub.datasets.ham10k.factory import HAMFactory
-from outlier_hub.datasets.ham10k.iterator import HAMIterator
+from outlier_hub.datasets.odr.factory import ODRFactory
+from outlier_hub.datasets.odr.iterator import ODRIterator
 import pytest
-import shutil
 
 
 class TestFactory:
@@ -20,7 +17,7 @@ class TestFactory:
         root_path = pathlib.Path.cwd()
 
         # complete path to manual added data
-        data_path = os.path.join(root_path, "src/outlier_hub/datasets/ham10k/data")
+        data_path = os.path.join(root_path, "src/outlier_hub/datasets/odr/data")
         return data_path
 
     @pytest.fixture
@@ -29,17 +26,13 @@ class TestFactory:
 
     @pytest.mark.parametrize("split_name", ["raw"])
     def test_get_dataset_iterator(self, storage_connector, split_name):
-        factory = HAMFactory(storage_connector)
+        factory = ODRFactory(storage_connector)
 
         iterator, _ = factory.get_dataset_iterator(config={"split": "raw"})
         sample, target, _ = iterator[random.randint(0, 1014)]
 
         # checking the type and size of whole iterator
-        assert isinstance(iterator, HAMIterator)
+        assert isinstance(iterator, ODRIterator)
         assert len(iterator) > 0
-        assert len(iterator) == 10015
+        assert len(iterator) == 7000
 
-        # checking if a item of iterator has the expected contents
-        assert isinstance(iterator[random.randint(0, 1014)], tuple)
-        assert list(sample.shape) == [450, 600, 3]
-        assert isinstance(sample, torch.Tensor) and isinstance(target, np.ndarray)
