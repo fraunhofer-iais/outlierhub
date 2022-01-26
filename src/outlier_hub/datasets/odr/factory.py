@@ -72,6 +72,19 @@ if __name__ == "__main__":
 
     odr_iterator, _ = odr_factory.get_dataset_iterator(config={"split": "raw"})
 
-    sample, target, tag = odr_iterator[2]
+for i in range(5):
+    sample, target, tag = odr_iterator[i]
+
+    f = plt.figure(figsize=(15,15))
+
+    f.add_subplot(1,2, 1)
+    plt.title(target[3])
+    plt.imshow(sample[0])
+
+    f.add_subplot(1,2, 2)
+    plt.title(target[4])
+    plt.imshow(sample[1])
+    plt.show(block=True)
+
+
     print(target)
-    sample[1].show()

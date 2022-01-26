@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+#%%
 from typing import Tuple, Dict, Any
 import logging
 from PIL.Image import Image
@@ -10,6 +10,7 @@ from data_stack.dataset.meta import IteratorMeta, MetaFactory
 import os
 import torchvision
 import tempfile
+import matplotlib.pyplot as plt
 from data_stack.util.logger import logger
 import pathlib
 from preprocessor import HAMPreprocessor
@@ -83,7 +84,6 @@ if __name__ == "__main__":
     # get root workind directory path
     root_path = pathlib.Path.cwd()
     logger.debug(f' pathlib.Path.cwd(): { pathlib.Path.cwd()}')
-    logger.debug(f' root_path = pathlib.Path.cwd().parents[3]: { pathlib.Path.cwd().parents[3]}')
 
     # complete path to manual added data
     data_path = os.path.join(root_path, "src/outlier_hub/datasets/ham10k/data")
@@ -96,12 +96,40 @@ if __name__ == "__main__":
 
     print(len(ham10k_iterator))
 
-    for i in range(2):
+    a,b,c,d,e,f,g = 0,0,0,0,0,0,0
+    for i in range(len(ham10k_iterator)):
+        # print('i:',i)
         sample, target, tag = ham10k_iterator[i]
-        Image.show(sample)
-        print(target)
-        print(tag)
+        # Image.show(sample)
+        # trans = torchvision.transforms.ToPILImage()
+        # trans1 = torchvision.transforms.ToTensor()
+        # plt.imshow(trans(trans1(sample)))
+        # plt.show()
+        # print(target)
+        # print(tag)
+        # print('target:',target)
+        #print('target:',type(int(target)))
+        #print(int(target) == 1)
 
+        if int(target) == 0:
+            a = a + 1
+        elif int(target) == 1:
+            b = b + 1
+        elif int(target) == 2:
+            c = c + 1
+        elif int(target) == 3:
+            d = d + 1
+        elif int(target) == 4:
+            e = e + 1
+        elif int(target) == 5:
+            f = f + 1
+        elif int(target) == 6:
+            g = g + 1
+    print('verteilung:',a,b,c,d,e,f,g)
+    # sample, target, tag = ham10k_iterator[1]
+    # trans = torchvision.transforms.ToPILImage()
+    # trans1 = torchvision.transforms.ToTensor()
+    # plt.imshow(trans(trans1(sample)))
 '''
     with tempfile.TemporaryDirectory() as root:
         example_file_storage_path = os.path.join(root, "dataset_storage")
@@ -121,3 +149,4 @@ if __name__ == "__main__":
             print(target)
             print(tag)
 '''
+# %%
