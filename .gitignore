@@ -109,6 +109,7 @@ venv.bak/
 .vscode/
 .history/
 zip/
+data/
 
 example_file_storage
 logo/logo.svg
@@ -130,3 +131,11 @@ raw_datasets
 /src/outlier_hub/datasets/odr/test.csv
 /src/outlier_hub/datasets/odr/sorted.csv
 /src/outlier_hub/datasets/odr/sorted2.csv
+src/outlier_hub/datasets/.DS_Store
+src/outlier_hub/datasets/odr/factory.py
+.DS_Store
+clean_temp_list.csv
+samples_list.csv
+.gitignore
+.gitignore
+targets_list.csv

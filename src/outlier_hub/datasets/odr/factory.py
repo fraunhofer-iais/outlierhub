@@ -7,8 +7,8 @@ from data_stack.dataset.iterator import DatasetIteratorIF
 from data_stack.dataset.meta import IteratorMeta, MetaFactory
 from data_stack.io.storage_connectors import StorageConnector, FileStorageConnector
 
-from outlier_hub.datasets.odr.preprocessor import ODRPreprocessor
-from outlier_hub.datasets.odr.iterator import ODRIterator
+from preprocessor import ODRPreprocessor
+from iterator import ODRIterator
 from data_stack.util.logger import logger
 
 
@@ -16,9 +16,11 @@ class ODRFactory(BaseDatasetFactory):
 
     def __init__(self, storage_connector: StorageConnector, ):
         # pathlib allows to manipulate the root folder, it takes it to the root directory of this project
-        self.raw_path = pathlib.Path.cwd().parents[3]
+        logger.debug(f"self.raw_path = pathlib.Path.cwd() {pathlib.Path.cwd()}")
+        self.raw_path = pathlib.Path.cwd()
         # completing the path to the manual added data source
-        self.data_path = os.path.join(self.raw_path, "src/outlier_hub/datasets/odr/data")
+        self.data_path = os.path.join(self.raw_path, "data")
+        logger.debug(f"self.data_path  {self.data_path}")
 
         super().__init__(storage_connector)
 
@@ -32,13 +34,13 @@ class ODRFactory(BaseDatasetFactory):
 
     def _prepare(self, split: str):
         preprocessor = ODRPreprocessor(self.storage_connector)
-
+        print("test")
         samples_identifier = self._get_resource_id(element=split + "/images")
         targets_identifier = self._get_resource_id(element=split + "/metadata/data.xlsx")
         dataset_identifier = self._get_resource_id(element="odr.hdf5")
 
-        logger.debug(f"preprocessor.preprocess(dataset/samples/targets - identifier) starts n"
-                     f"{dataset_identifier, samples_identifier, targets_identifier}")
+        logger.debug(f"preprocessor.preprocess(dataset/samples/targets - identifier) starts"
+                     f"{dataset_identifier} \n , {samples_identifier},\n {targets_identifier}")
 
         preprocessor.preprocess(dataset_identifier=dataset_identifier,
                                 samples_identifier=samples_identifier,
@@ -61,12 +63,14 @@ if __name__ == "__main__":
     logger.debug(f"starting event")
 
     # get root workind directory path
-    root_path = pathlib.Path.cwd().parents[3]
+    root_path = pathlib.Path.cwd()
 
     # complete path to manual added data
-    data_path = os.path.join(root_path, "src/outlier_hub/datasets/odr/data")
+    data_path = os.path.join(root_path, "data")
+    print(f'data_path: {data_path}')
 
     storage_connector = FileStorageConnector(root_path=data_path)
+    print(f'storage_connector: {storage_connector.root_path}')
 
     odr_factory = ODRFactory(storage_connector)
 
