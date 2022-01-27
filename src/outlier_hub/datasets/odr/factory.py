@@ -6,6 +6,7 @@ from data_stack.dataset.factory import BaseDatasetFactory
 from data_stack.dataset.iterator import DatasetIteratorIF
 from data_stack.dataset.meta import IteratorMeta, MetaFactory
 from data_stack.io.storage_connectors import StorageConnector, FileStorageConnector
+import matplotlib.pyplot as plt
 
 from preprocessor import ODRPreprocessor
 from iterator import ODRIterator
