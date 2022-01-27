@@ -124,6 +124,13 @@ raw_datasets
 
 /src/outlier_hub/datasets/ham10k/data/raw/metadata/
 !/src/outlier_hub/datasets/ham10k/data/raw/metadata/.gitkeep
+
+/data
+/data/raw/images/
+!/data/raw/images/.gitkeep
+/data/raw/metadata/
+!/data/raw/metadata/.gitkeep
+
 /src/outlier_hub/datasets/ham10k/data/ham10k.hdf5
 /src/outlier_hub/datasets/odr/data/raw/metadata/full_df.csv
 /src/outlier_hub/datasets/odr/data/raw/images/
@@ -137,6 +144,5 @@ src/outlier_hub/datasets/odr/factory.py
 .DS_Store
 clean_temp_list.csv
 samples_list.csv
-.gitignore
-.gitignore
+
 targets_list.csv
