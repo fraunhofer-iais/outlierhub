@@ -29,8 +29,11 @@ class HAMIterator(DatasetIterator):
             sample_np = np.array(self.samples_dataset[str(index)])
             sample_bytes = io.BytesIO(sample_np)
             sample = Image.open(sample_bytes)
+            target = self.targets_dataset[index]
+            #print('target - before:',target)
+            target = argmax(target)
+            #print('target - after:',target)
 
-            target = argmax(self.targets_dataset[index])
             target2 = self.targets_dataset[index]
 
             return sample, target, target2        

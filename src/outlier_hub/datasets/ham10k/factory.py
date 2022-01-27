@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+#%%
 from typing import Tuple, Dict, Any
 import logging
 from PIL.Image import Image
@@ -10,6 +10,9 @@ from data_stack.dataset.meta import IteratorMeta, MetaFactory
 import os
 import torchvision
 import tempfile
+import matplotlib.pyplot as plt
+from data_stack.util.logger import logger
+import pathlib
 from preprocessor import HAMPreprocessor
 from iterator import HAMIterator
 
@@ -22,7 +25,9 @@ class Ham10kFactory(BaseDatasetFactory):
                                     'train_labels': {'url': 'https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_GroundTruth.zip',
                                                   'file_name':'train_labels.zip'}
                                   }
+
         self.data_path = storage_connector.root_path
+
         self.dataset_name = 'isic2018.hdf5'
 
         super().__init__(storage_connector)
@@ -36,8 +41,11 @@ class Ham10kFactory(BaseDatasetFactory):
 
     def _retrieve_raw(self):
         for url_dict in self.download_train_url.values():
+            
+            logger.debug(f'self.data_path: {self.data_path}')
 
             train_path = self._get_resource_id(data_type='raw', data_split='train')
+            logger.debug(f'train_path one: {train_path}')
 
             torchvision.datasets.utils.download_url(url_dict['url'],
                                                     root=train_path,
@@ -72,7 +80,57 @@ class Ham10kFactory(BaseDatasetFactory):
         return self._get_iterator(**config)
 
 if __name__ == "__main__":
+    
+    # get root workind directory path
+    root_path = pathlib.Path.cwd()
+    logger.debug(f' pathlib.Path.cwd(): { pathlib.Path.cwd()}')
 
+    # complete path to manual added data
+    data_path = os.path.join(root_path, "src/outlier_hub/datasets/ham10k/data")
+
+    storage_connector = FileStorageConnector(root_path=data_path)
+
+    ham10k_factory = Ham10kFactory(storage_connector)
+
+    ham10k_iterator, _ = ham10k_factory.get_dataset_iterator(config={"split": "train"})
+
+    print(len(ham10k_iterator))
+
+    a,b,c,d,e,f,g = 0,0,0,0,0,0,0
+    for i in range(len(ham10k_iterator)):
+        # print('i:',i)
+        sample, target, tag = ham10k_iterator[i]
+        # Image.show(sample)
+        # trans = torchvision.transforms.ToPILImage()
+        # trans1 = torchvision.transforms.ToTensor()
+        # plt.imshow(trans(trans1(sample)))
+        # plt.show()
+        # print(target)
+        # print(tag)
+        # print('target:',target)
+        #print('target:',type(int(target)))
+        #print(int(target) == 1)
+
+        if int(target) == 0:
+            a = a + 1
+        elif int(target) == 1:
+            b = b + 1
+        elif int(target) == 2:
+            c = c + 1
+        elif int(target) == 3:
+            d = d + 1
+        elif int(target) == 4:
+            e = e + 1
+        elif int(target) == 5:
+            f = f + 1
+        elif int(target) == 6:
+            g = g + 1
+    print('verteilung:',a,b,c,d,e,f,g)
+    # sample, target, tag = ham10k_iterator[1]
+    # trans = torchvision.transforms.ToPILImage()
+    # trans1 = torchvision.transforms.ToTensor()
+    # plt.imshow(trans(trans1(sample)))
+'''
     with tempfile.TemporaryDirectory() as root:
         example_file_storage_path = os.path.join(root, "dataset_storage")
 
@@ -85,8 +143,10 @@ if __name__ == "__main__":
         ham10k_iterator, _ = ham10k_factory.get_dataset_iterator(config={"split": "train"})
         
         print(len(ham10k_iterator))
-        for i in range(10):
+        for i in range(5):
             sample, target, tag = ham10k_iterator[i]
             Image.show(sample)
             print(target)
             print(tag)
+'''
+# %%
