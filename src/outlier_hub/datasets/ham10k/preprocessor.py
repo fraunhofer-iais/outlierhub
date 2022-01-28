@@ -79,6 +79,8 @@ class HAMPreprocessor:
                         raw_targets_identifier):
 
         df = pd.read_csv('data/ham10k/raw/train/train_labels/ISIC2018_Task3_Training_GroundTruth.csv', header=0)
+
+
         
         print(df.head())
 

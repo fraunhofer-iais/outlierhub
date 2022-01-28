@@ -5,7 +5,7 @@ with open("../README.md", "r") as fh:
 
 setup(
     name='outlier_hub',
-    version='0.0.11',
+    version='0.0.13',
     author='Max Luebbering, Rajkumar Ramamurthy, Michael Gebauer',
     description="Outlierhub, a collection of machine learning datasets.",
     long_description=long_description,

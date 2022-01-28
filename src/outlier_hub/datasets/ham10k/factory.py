@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#%%
 from collections import Counter
 from typing import Tuple, Dict, Any
 import logging
@@ -97,11 +96,10 @@ if __name__ == "__main__":
 
     print(len(ham10k_iterator))
 
+
     cnt = Counter()
     diagnose_int = []
 
-
-    a,b,c,d,e,f,g = 0,0,0,0,0,0,0
     for i in range(len(ham10k_iterator)):
         sample, target, tag = ham10k_iterator[i]
         diagnose_int.append(int(target))
@@ -116,6 +114,12 @@ if __name__ == "__main__":
     trans = torchvision.transforms.ToPILImage()
     trans1 = torchvision.transforms.ToTensor()
     plt.imshow(trans(trans1(sample)))
+
+    # sample, target, tag = ham10k_iterator[1]
+    # trans = torchvision.transforms.ToPILImage()
+    # trans1 = torchvision.transforms.ToTensor()
+    # plt.imshow(trans(trans1(sample)))
+
 
     with tempfile.TemporaryDirectory() as root:
         example_file_storage_path = os.path.join(root, "dataset_storage")
@@ -134,5 +138,4 @@ if __name__ == "__main__":
             Image.show(sample)
             print(target)
             print(tag)
-'''
-# %%
+    '''
