@@ -270,7 +270,7 @@ class ODRPreprocessor:
                    samples_identifier: str,
                    targets_identifier: str) -> StreamedResource:
         logger.debug(f"preprocess(dataset/samples/targets - identifier) starts"
-                     f"{dataset_identifier, samples_identifier, targets_identifier}")
+                     f"{dataset_identifier} \n , {samples_identifier},\n {targets_identifier}")
 
         with tempfile.TemporaryFile() as temp_file:
             with h5py.File(temp_file, 'w') as h5py_file:
